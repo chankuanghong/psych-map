@@ -1,6 +1,9 @@
 import { PATIENTS } from './patients.js'
 import { computeDailyMetrics, getDayNumber } from './metricsEngine.js'
 import { getEventsForPatient } from './syntheticEvents.js'
+import { getDailyVitals } from './syntheticVitals.js'
+import { getMocaForPatient } from './syntheticEpicData.js'
+import { getClinicalDocumentsForPatient, getVisitorFormsForPatient } from './syntheticDocumentation.js'
 import { formatDuration, formatDurationPerDay } from '../utils/duration.js'
 
 const round = value => Math.round((value || 0) * 10) / 10
@@ -103,6 +106,10 @@ export function buildEvidencePacket(patientId, range, selectedDaysOverride) {
   const firstHalf = summariseRows(selected.slice(0, split))
   const secondHalf = summariseRows(selected.slice(split)) || firstHalf
   const { clinicalEvents } = getEventsForPatient(patientId)
+  const dailyVitals = getDailyVitals(patientId).filter(row => row.day >= fromDay && row.day <= toDay && (!selectedSet || selectedSet.has(row.day)))
+  const mocaObservations = getMocaForPatient(patientId).filter(row => row.day >= fromDay && row.day <= toDay && (!selectedSet || selectedSet.has(row.day)))
+  const clinicalDocuments = getClinicalDocumentsForPatient(patientId).filter(row => row.day >= fromDay && row.day <= toDay && (!selectedSet || selectedSet.has(row.day)))
+  const visitorForms = getVisitorFormsForPatient(patientId).filter(row => row.day >= fromDay && row.day <= toDay && (!selectedSet || selectedSet.has(row.day)))
 
   return {
     immediateConcern: false,
@@ -130,7 +137,15 @@ export function buildEvidencePacket(patientId, range, selectedDaysOverride) {
       overnightRestProxyMins: row.sleepWindowMins,
       overnightAwayMins: row.overnightAwayMins,
       zoneTransitions: row.zoneTransitions,
+      staffContacts: row.staffContacts,
+      peerContacts: row.peerContacts,
+      structuredSessions: row.structuredSessions,
+      dataCompleteness: 100,
     })),
+    dailyVitals,
+    mocaObservations,
+    clinicalDocuments,
+    visitorForms,
     clinicalEvents: clinicalEvents
       .filter(event => {
         const day = getDayNumber(event.timestamp)

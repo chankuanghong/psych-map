@@ -1,6 +1,7 @@
 const NAV_ITEMS = [
   { id: 'ward',    label: 'Ward Overview' },
   { id: 'map',     label: 'Patient MAP' },
+  { id: 'insights', label: 'Clinical Insights' },
   { id: 'method',  label: 'About' },
 ]
 
@@ -36,7 +37,7 @@ export default function Header({ activeTab, onTabChange, selectedPatient, profes
           </nav>
 
           {/* Patient indicator */}
-          {selectedPatient && activeTab === 'map' && (
+          {selectedPatient && ['map', 'insights'].includes(activeTab) && (
             <div className="ml-auto flex items-center gap-2 text-sm">
               <span className="text-slate-400">Viewing:</span>
               <span className="font-medium text-brand-700">{selectedPatient.name}</span>
@@ -50,7 +51,7 @@ export default function Header({ activeTab, onTabChange, selectedPatient, profes
           <button type="button" onClick={onChangeProfession} className="shrink-0 rounded border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-600 hover:border-brand-300 hover:bg-brand-50" title="Change professional lens">
             {profession?.shortName || 'MDT'} lens
           </button>
-          <div className={`${selectedPatient && activeTab === 'map' ? '' : 'ml-auto'} shrink-0`}>
+          <div className={`${selectedPatient && ['map', 'insights'].includes(activeTab) ? '' : 'ml-auto'} shrink-0`}>
             <span className="px-2 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-medium border border-amber-200">
               Synthetic data — demonstration only
             </span>

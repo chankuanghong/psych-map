@@ -1,5 +1,3 @@
-import { useEffect, useMemo, useState } from 'react'
-import InsightAgent from './InsightAgent.jsx'
 import IntegratedPatientView from './IntegratedPatientView.jsx'
 
 const getPatientDisplayName = patient => patient.displayName ?? patient.name ?? patient.id ?? 'Patient'
@@ -8,31 +6,7 @@ const getInitials = patient => getPatientDisplayName(patient)
   .filter(Boolean)
   .map(part => part[0])
   .join('')
-export default function PatientMAP({ patient, profession }) {
-  const [showAgent, setShowAgent] = useState(true)
-  const [range, setRange] = useState([1, patient.lengthOfStay])
-  const [excludedDays, setExcludedDays] = useState([])
-  const selectedDays = useMemo(() => Array.from({ length: range[1] - range[0] + 1 }, (_, index) => range[0] + index).filter(day => !excludedDays.includes(day)), [range, excludedDays])
-
-  useEffect(() => {
-    setRange([1, patient.lengthOfStay])
-    setExcludedDays([])
-  }, [patient.id, patient.lengthOfStay])
-
-  const changeRange = updater => {
-    setRange(current => typeof updater === 'function' ? updater(current) : updater)
-    setExcludedDays([])
-  }
-
-  const toggleDay = day => {
-    if (day < range[0] || day > range[1]) {
-      setRange(([start, end]) => [Math.min(start, day), Math.max(end, day)])
-      setExcludedDays(current => current.filter(item => item !== day))
-      return
-    }
-    if (excludedDays.includes(day)) setExcludedDays(current => current.filter(item => item !== day))
-    else if (selectedDays.length > 1) setExcludedDays(current => [...current, day])
-  }
+export default function PatientMAP({ patient, range, onRangeChange, selectedDays, onDayToggle }) {
 
   return (
     <div className="max-w-screen-xl mx-auto px-4 py-6 space-y-4">
@@ -52,22 +26,7 @@ export default function PatientMAP({ patient, profession }) {
         </div>
       </div>
 
-      <IntegratedPatientView patientId={patient.id} range={range} onRangeChange={changeRange} selectedDays={selectedDays} onDayToggle={toggleDay} />
-
-      <div className="card overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setShowAgent(value => !value)}
-          className="flex w-full items-center justify-between px-4 py-3 text-left"
-        >
-          <span>
-            <span className="panel-title block">Psych-MAP insight analysis</span>
-            <span className="mt-1 block text-xs text-slate-400">Ask questions grounded in {selectedDays.length} selected day{selectedDays.length === 1 ? '' : 's'} and the related clinical events.</span>
-          </span>
-          <span className="text-sm font-medium text-brand-700">{showAgent ? 'Hide analysis' : 'Open analysis'}</span>
-        </button>
-        {showAgent && <div className="border-t border-slate-100"><InsightAgent patientId={patient.id} range={range} selectedDays={selectedDays} profession={profession} /></div>}
-      </div>
+      <IntegratedPatientView patientId={patient.id} range={range} onRangeChange={onRangeChange} selectedDays={selectedDays} onDayToggle={onDayToggle} />
     </div>
   )
 }

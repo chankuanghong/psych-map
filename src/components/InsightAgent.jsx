@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { AlertTriangle, CheckCircle, LoaderCircle, Send, Sparkles } from 'lucide-react'
+import { BookOpen, ExternalLink, LoaderCircle, Send, Sparkles } from 'lucide-react'
 import { buildEvidencePacket } from '../data/evidenceEngine.js'
 
 const QUESTIONS = {
@@ -34,6 +34,7 @@ const PROFESSION_QUESTIONS = {
 }
 
 const SAFETY_AUTONOMY_QUESTION = 'What should the MDT consider about safety and autonomy?'
+const VITALS_QUESTION = 'What do the recorded heart rate and blood pressure show in this period?'
 
 const PROFESSION_FOCUS = {
   ward_manager: 'review participation change, data completeness and which patterns warrant allocation at the next ward review',
@@ -54,6 +55,13 @@ const findSignal = (signals, question) => {
 
 function deterministicFallback(question, packet, professionId) {
   const professionalFocus = PROFESSION_FOCUS[professionId] || PROFESSION_FOCUS.psychiatry
+  if (question.toLowerCase().match(/heart rate|pulse|blood pressure|\bbp\b|vital/)) {
+    const rows = packet.dailyVitals || []
+    if (!rows.length) return '• Data availability: No flowsheet vital observations are available in the selected period.\n• Limitation: Missing observations must not be interpreted as physiological stability.'
+    const mean = key => Math.round(rows.reduce((sum, row) => sum + row[key], 0) / rows.length)
+    const rangeFor = key => `${Math.min(...rows.map(row => row[key]))}–${Math.max(...rows.map(row => row[key]))}`
+    return `• Recorded observations: Mean heart rate ${mean('heartRate')} bpm (daily range ${rangeFor('heartRate')} bpm); mean blood pressure ${mean('systolicBP')}/${mean('diastolicBP')} mmHg.\n• Period: Days ${packet.selectedPeriod.fromDay}–${packet.selectedPeriod.toDay}.\n• Source: Synthetic EPIC-style flowsheet observations, cross-referenced as contextual evidence.\n• Limitation: These demonstration values do not establish clinical significance or a relationship with behavioural change.`
+  }
   if (question.toLowerCase().match(/dav|aggress|violent|behavio(u)?ral episode/)) {
     const episodes = packet.clinicalEvents.filter(event => event.type === 'dav_episode')
     if (!episodes.length) return `• Documentation: No DAV episode is recorded in the selected days.\n• Limitation: Absence of a selected-period record does not establish absence of risk or behaviour.\n• Clinical focus: ${professionalFocus}.`
@@ -70,21 +78,53 @@ function deterministicFallback(question, packet, professionId) {
   return `• Pattern: ${signal.title}.\n• Evidence: ${signal.evidence}\n${otherSignals.length ? `• Also surfaced: ${otherSignals.join(' and ')}.\n` : ''}• Limitation: ${signal.caveat}\n• Clinical focus: ${professionalFocus}.`
 }
 
-const SIGNAL_STYLE = {
-  high: 'border-red-200 bg-red-50 text-red-800',
-  moderate: 'border-amber-200 bg-amber-50 text-amber-800',
+const getEvidenceFocus = (question, packet) => {
+  const q = question.toLowerCase()
+  let metricKey = 'outsideBedroomMins'
+  let metricLabel = 'Time beyond assigned cubicle'
+  if (q.match(/blood pressure|\bbp\b/)) { metricKey = 'systolicBP'; metricLabel = 'Blood pressure' }
+  else if (q.match(/heart rate|pulse|\bhr\b|vital/)) { metricKey = 'heartRate'; metricLabel = 'Heart rate' }
+  else if (q.match(/peer|friend|social/)) { metricKey = 'peerContacts'; metricLabel = 'Peer contacts' }
+  else if (q.match(/staff|handover/)) { metricKey = 'staffContacts'; metricLabel = 'Staff contacts' }
+  else if (q.match(/sleep|rest|night/)) { metricKey = 'overnightRestProxyMins'; metricLabel = 'Overnight rest proxy' }
+  else if (q.match(/shower|wash|routine/)) { metricKey = 'showerMins'; metricLabel = 'Shower-area presence' }
+  else if (q.match(/activit|session|occupation/)) { metricKey = 'activityMins'; metricLabel = 'Activity-room presence' }
+  else if (q.match(/transition|roam|movement/)) { metricKey = 'zoneTransitions'; metricLabel = 'Zone transitions' }
+
+  let fromDay = packet.selectedPeriod.fromDay
+  let toDay = packet.selectedPeriod.toDay
+  let comparisonRanges = null
+  const explicitRanges = [...q.matchAll(/days?\s+(\d+)\s*(?:-|–|to)\s*(\d+)/g)]
+  const afterDay = q.match(/after\s+day\s+(\d+)/)
+  if (explicitRanges.length >= 2) {
+    comparisonRanges = explicitRanges.slice(0, 2).map(match => [Math.max(fromDay, Number(match[1])), Math.min(toDay, Number(match[2]))])
+    fromDay = Math.min(...comparisonRanges.map(item => item[0]))
+    toDay = Math.max(...comparisonRanges.map(item => item[1]))
+  } else if (explicitRanges.length === 1) {
+    fromDay = Math.max(fromDay, Number(explicitRanges[0][1]))
+    toDay = Math.min(toDay, Number(explicitRanges[0][2]))
+  } else if (afterDay) {
+    const boundary = Math.max(fromDay, Math.min(toDay, Number(afterDay[1])))
+    comparisonRanges = boundary > fromDay ? [[fromDay, boundary - 1], [boundary, toDay]] : null
+  } else if (q.match(/compare|comparison|change|changed|improv|differ|before|versus|\bvs\b/)) {
+    const midpoint = Math.floor((fromDay + toDay) / 2)
+    if (midpoint < toDay) comparisonRanges = [[fromDay, midpoint], [midpoint + 1, toDay]]
+  }
+  return { metricKey, metricLabel, range: [fromDay, toDay], comparisonRanges, query: question }
 }
 
-export default function InsightAgent({ patientId, range, selectedDays, profession }) {
+export default function InsightAgent({ patientId, range, selectedDays, profession, onEvidenceFocus }) {
   const packet = useMemo(() => buildEvidencePacket(patientId, range, selectedDays), [patientId, range, selectedDays])
   const [question, setQuestion] = useState('')
   const [conversation, setConversation] = useState([])
   const [loading, setLoading] = useState(false)
-  const suggestedQuestions = [PROFESSION_QUESTIONS[profession?.id] || PROFESSION_QUESTIONS.psychiatry, SAFETY_AUTONOMY_QUESTION, ...(QUESTIONS[patientId] || QUESTIONS['PT-001'])].slice(0, 4)
+  const suggestedQuestions = [PROFESSION_QUESTIONS[profession?.id] || PROFESSION_QUESTIONS.psychiatry, VITALS_QUESTION, SAFETY_AUTONOMY_QUESTION, ...(QUESTIONS[patientId] || QUESTIONS['PT-001'])].slice(0, 4)
 
   const askQuestion = async (prompt = question) => {
     const cleaned = prompt.trim()
     if (!cleaned || loading) return
+    const focus = getEvidenceFocus(cleaned, packet)
+    onEvidenceFocus?.(focus)
     setLoading(true)
     setQuestion('')
     let answer
@@ -103,7 +143,7 @@ export default function InsightAgent({ patientId, range, selectedDays, professio
       answer = deterministicFallback(cleaned, packet, profession?.id)
       source = 'Deterministic fallback · Gemini unavailable'
     }
-    setConversation(items => [...items, { question: cleaned, answer, source }])
+    setConversation(items => [...items, { question: cleaned, answer, source, focus }])
     setLoading(false)
   }
 
@@ -114,30 +154,17 @@ export default function InsightAgent({ patientId, range, selectedDays, professio
           <div className="flex items-start gap-3">
             <div className="mt-0.5 rounded-lg bg-brand-50 p-2 text-brand-600"><Sparkles size={17} /></div>
             <div>
-              <h2 className="text-sm font-semibold text-slate-800">Ask Psych-MAP · {profession?.name || 'MDT'} lens</h2>
-              <p className="mt-0.5 text-xs text-slate-500">Ask about evidence from {packet.selectedPeriod.days} selected day{packet.selectedPeriod.days === 1 ? '' : 's'} within Days {packet.selectedPeriod.fromDay}–{packet.selectedPeriod.toDay}.</p>
-              <p className="mt-1 text-[10px] text-slate-400">Deterministic detectors find signals · Gemini translates them when configured · clinician interpretation required.</p>
+              <h2 className="text-base font-semibold text-slate-800">Ask Psych-MAP · {profession?.name || 'MDT'} lens</h2>
+              <p className="mt-1 text-sm text-slate-500">Answers use the selected Days {packet.selectedPeriod.fromDay}–{packet.selectedPeriod.toDay} and cross-reference the evidence chart.</p>
             </div>
           </div>
-          <span className="rounded bg-slate-100 px-2 py-1 text-[10px] font-medium text-slate-600">Shared evidence · personalised emphasis</span>
+          <span className="rounded bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">Shared evidence · personalised emphasis</span>
         </div>
 
-        <div className="mb-4">
-          <div className="mb-2 flex items-center gap-2"><CheckCircle size={13} className="text-brand-600" /><p className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">Automatically detected in selected period</p></div>
-          {packet.deterministicSignals.length ? (
-            <div className="grid gap-2 md:grid-cols-2">
-              {packet.deterministicSignals.map(signal => (
-                <div key={signal.id} className={`rounded-lg border p-3 ${SIGNAL_STYLE[signal.severity] || SIGNAL_STYLE.moderate}`}>
-                  <div className="flex items-start gap-2"><AlertTriangle size={13} className="mt-0.5 shrink-0" /><div><p className="text-xs font-semibold">{signal.title}</p><p className="mt-1 text-[10px] leading-relaxed opacity-80">{signal.evidence}</p></div></div>
-                </div>
-              ))}
-            </div>
-          ) : <p className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500">No configured signal threshold was crossed. This does not establish clinical stability.</p>}
-        </div>
-
-        <div className="mb-4 flex flex-wrap gap-2">
+        <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-slate-500"><BookOpen size={14} className="text-brand-600" />Frequently asked by {profession?.shortName || 'MDT'} clinicians</div>
+        <div className="mb-4 grid gap-2 sm:grid-cols-2">
           {suggestedQuestions.map(prompt => (
-            <button key={prompt} type="button" onClick={() => askQuestion(prompt)} disabled={loading} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:border-brand-300 hover:bg-brand-50 disabled:opacity-50">{prompt}</button>
+            <button key={prompt} type="button" onClick={() => askQuestion(prompt)} disabled={loading} className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-left text-sm text-slate-600 hover:border-brand-300 hover:bg-brand-50 disabled:opacity-50">{prompt}</button>
           ))}
         </div>
 
@@ -145,10 +172,13 @@ export default function InsightAgent({ patientId, range, selectedDays, professio
           <div className="mb-4 max-h-96 space-y-3 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-3">
             {conversation.map((item, index) => (
               <div key={`${item.question}-${index}`} className="space-y-1.5">
-                <p className="ml-auto max-w-[85%] rounded-lg bg-brand-700 px-3 py-2 text-xs text-white">{item.question}</p>
+                <p className="ml-auto max-w-[85%] rounded-lg bg-brand-700 px-3 py-2 text-sm text-white">{item.question}</p>
                 <div className="max-w-[92%] rounded-lg border border-slate-200 bg-white px-3 py-2.5 shadow-sm">
-                  <div className="mb-1 flex flex-wrap items-center justify-between gap-2"><p className="text-[9px] font-semibold uppercase tracking-wider text-brand-600">Evidence response</p><span className="text-[9px] text-slate-400">{item.source}</span></div>
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><p className="text-xs font-semibold uppercase tracking-wider text-brand-600">Evidence response</p><span className="text-xs text-slate-400">{item.source}</span></div>
                   <p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">{item.answer}</p>
+                  <button type="button" onClick={() => onEvidenceFocus?.(item.focus)} className="mt-3 flex w-full items-center justify-between rounded-md border border-brand-100 bg-brand-50 px-3 py-2 text-left text-xs font-medium text-brand-800">
+                    <span>E1 · {item.focus.metricLabel} · {item.focus.comparisonRanges ? `Days ${item.focus.comparisonRanges[0][0]}–${item.focus.comparisonRanges[0][1]} vs ${item.focus.comparisonRanges[1][0]}–${item.focus.comparisonRanges[1][1]}` : `Days ${item.focus.range[0]}–${item.focus.range[1]}`}</span><ExternalLink size={13} />
+                  </button>
                 </div>
               </div>
             ))}

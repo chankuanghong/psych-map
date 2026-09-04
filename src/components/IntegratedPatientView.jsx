@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  AreaChart, Area, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  AreaChart, Area, CartesianGrid, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { CalendarDays, ChevronLeft, ChevronRight, FileText, Minus, Moon, Plus, RotateCcw } from 'lucide-react'
 import { ARCHITECTURAL_AREAS, ENTRANCE, WARD_BOUNDARIES, ZONES } from '../data/zones.js'
@@ -32,6 +32,7 @@ const EVENT_STYLE = {
 
 const getEventCategory = event => event.eventType === 'dav_episode' ? 'DAV' : event.eventType === 'medication_change' ? 'Medication' : event.discipline
 const getEventStyle = event => EVENT_STYLE[getEventCategory(event)] || EVENT_STYLE.MDT
+const getEventKey = event => `${event.timestamp}-${event.title}`
 
 const heatFill = level => [
   '#f8fafc', '#e0f2fe', '#bae6fd', '#7dd3fc', '#38bdf8', '#0ea5e9', '#0284c7', '#0369a1',
@@ -81,6 +82,7 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
   const [hoveredZone, setHoveredZone] = useState(null)
   const [hoveredEvent, setHoveredEvent] = useState(null)
   const [selectedEvent, setSelectedEvent] = useState(null)
+  const [pinnedEvents, setPinnedEvents] = useState([])
   const [mapZoom, setMapZoom] = useState(0.75)
   const pinchRef = useRef(null)
   const rangeTrackRef = useRef(null)
@@ -100,6 +102,7 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
 
   useEffect(() => {
     setSelectedEvent(null)
+    setPinnedEvents([])
   }, [patientId])
 
   const zoneData = useMemo(() => {
@@ -118,6 +121,16 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
 
   const filteredEvents = clinicalEvents.filter(event => eventFilters[getEventCategory(event)] !== false)
   const chartData = daily.filter(row => selectedDaySet.has(row.day))
+  const visiblePinnedEvents = pinnedEvents.filter(event => eventFilters[getEventCategory(event)] !== false)
+  const highlightedEvents = hoveredEvent && !visiblePinnedEvents.some(event => getEventKey(event) === getEventKey(hoveredEvent))
+    ? [...visiblePinnedEvents, hoveredEvent]
+    : visiblePinnedEvents
+  const highlightedEventGroups = Object.values(highlightedEvents.reduce((groups, event) => {
+    const day = getDayNumber(event.timestamp)
+    if (day < range[0] || day > range[1]) return groups
+    groups[day] = [...(groups[day] || []), event]
+    return groups
+  }, {}))
   const dayDate = day => daily.find(row => row.day === day)?.date || `Day ${day}`
   const timeGrid = useMemo(() => selectedDays.map(day => {
     const cells = Array.from({ length: 24 }, (_, hour) => {
@@ -146,11 +159,18 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
     return Math.min(dayCount, Math.max(1, Math.round((parsed.getTime() - ADMISSION_DATE.getTime()) / 86400000) + 1))
   }
 
-  const setSingleDay = day => setRange([day, day])
   const focusEvent = event => {
-    const day = getDayNumber(event.timestamp)
-    setSelectedEvent(event)
-    setSingleDay(day)
+    const eventKey = getEventKey(event)
+    const isPinned = pinnedEvents.some(item => getEventKey(item) === eventKey)
+    const nextPinnedEvents = isPinned
+      ? pinnedEvents.filter(item => getEventKey(item) !== eventKey)
+      : [...pinnedEvents, event]
+    setPinnedEvents(nextPinnedEvents)
+    setSelectedEvent(current => (
+      isPinned && current && getEventKey(current) === eventKey
+        ? nextPinnedEvents.at(-1) || null
+        : event
+    ))
   }
 
   const updateStart = value => setRange(([, end]) => [Math.max(1, Math.min(Number(value), end)), end])
@@ -218,7 +238,7 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
             <button type="button" onClick={() => document.getElementById('night-view')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="flex items-center gap-2 rounded-md border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700 hover:bg-indigo-100">
               <Moon size={13} /> Night view
             </button>
-            <button type="button" onClick={() => { setRange([1, dayCount]); setSelectedEvent(null) }} className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50">
+            <button type="button" onClick={() => { setRange([1, dayCount]); setSelectedEvent(null); setPinnedEvents([]) }} className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50">
               <RotateCcw size={13} /> Reset {dayCount} days
             </button>
           </div>
@@ -460,6 +480,37 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
                   <XAxis dataKey="day" type="number" domain={[Math.max(0.5, range[0] - 0.45), Math.min(dayCount + 0.5, range[1] + 0.45)]} ticks={chartTicks} tick={{ fontSize: 10, fill: '#64748b' }} tickLine={false} axisLine={{ stroke: '#cbd5e1' }} allowDataOverflow />
                   <YAxis tickFormatter={formatDuration} tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} width={48} />
                   <Tooltip content={<SpaceTooltip />} />
+                  {highlightedEventGroups.map(events => {
+                    const day = getDayNumber(events[0].timestamp)
+                    const markerEvent = hoveredEvent && events.some(event => getEventKey(event) === getEventKey(hoveredEvent)) ? hoveredEvent : events.at(-1)
+                    const categories = [...new Set(events.map(getEventCategory))]
+                    return (
+                    <Fragment key={`event-marker-${day}`}>
+                      <ReferenceArea
+                        x1={day - 0.14}
+                        x2={day + 0.14}
+                        fill={getEventStyle(markerEvent).color}
+                        fillOpacity={0.045}
+                        ifOverflow="hidden"
+                      />
+                      <ReferenceLine
+                        x={day}
+                        stroke={getEventStyle(markerEvent).color}
+                        strokeWidth={1.25}
+                        strokeOpacity={0.7}
+                        strokeDasharray="4 4"
+                        ifOverflow="hidden"
+                        label={{
+                          value: `Day ${day} · ${categories.join(' + ')}`,
+                          position: 'insideTopRight',
+                          fill: getEventStyle(markerEvent).color,
+                          fontSize: 9,
+                          fontWeight: 600,
+                        }}
+                      />
+                    </Fragment>
+                    )
+                  })}
                   {SPACE_SERIES.filter(space => visibleSpaces[space.key]).map(space => (
                     <Area
                       key={space.key}
@@ -484,7 +535,7 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <p className="text-xs font-semibold text-slate-700">Clinical event nodes</p>
-                  <p className="text-[10px] text-slate-400">Hover for purpose. Click to open documentation. DAV means a nurse-documented disturbed, aggressive or violent episode; it is never inferred from location data.</p>
+                  <p className="text-[10px] text-slate-400">Hover to locate the event on the graph. Click to open documentation. DAV means a nurse-documented disturbed, aggressive or violent episode; it is never inferred from location data.</p>
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {Object.entries(EVENT_STYLE).map(([discipline, config]) => (
@@ -507,7 +558,7 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
                   const sameDayOffset = filteredEvents.slice(0, index).filter(item => getDayNumber(item.timestamp) === day).length
                   return (
                     <button
-                      key={`${event.timestamp}-${event.title}`}
+                      key={getEventKey(event)}
                       type="button"
                       onMouseEnter={() => setHoveredEvent(event)}
                       onMouseLeave={() => setHoveredEvent(null)}
@@ -515,8 +566,9 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
                       onBlur={() => setHoveredEvent(null)}
                       onClick={() => focusEvent(event)}
                       aria-label={`${getEventCategory(event)}${getEventCategory(event) === 'DAV' ? ' nursing documentation' : ''}, day ${day}: ${event.title}`}
-                      className="absolute z-10 h-3.5 w-3.5 -translate-x-1/2 rounded-full border-2 border-white shadow-sm outline-none ring-offset-1 hover:scale-125 focus:ring-2"
-                      style={{ left: `${((day - 0.5) / dayCount) * 100}%`, top: `${14 - sameDayOffset * 8}px`, background: config.color }}
+                      aria-pressed={pinnedEvents.some(item => getEventKey(item) === getEventKey(event))}
+                      className="absolute z-10 h-3.5 w-3.5 -translate-x-1/2 rounded-full border-2 border-white shadow-sm outline-none ring-offset-1 hover:scale-125 focus:ring-2 aria-pressed:ring-2"
+                      style={{ left: `${((day - 0.5) / dayCount) * 100}%`, top: `${14 - sameDayOffset * 8}px`, background: config.color, '--tw-ring-color': config.color }}
                     ><title>{event.title}: {event.description}</title></button>
                   )
                 })}
