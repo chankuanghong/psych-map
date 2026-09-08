@@ -23,6 +23,10 @@ Vite was updated to a patched 6.4 release; npm reported zero dependency advisori
 after the update. Dependency scanning is point-in-time and does not establish
 production security. The app still lacks production authentication/authorisation.
 
+The packaged application and RFID dashboard were also started on temporary local
+ports. Both health/status endpoints reported the same generated application SQLite
+path. The reader reported disconnected; this is not a physical RFID read test.
+
 Live evaluation caveat: latest successful cases are assembled from an initial
 full run and targeted retests. Failures and the Codex judge review are retained.
 No unattended scheduler trigger or new physical tag read was tested. The live
