@@ -4,6 +4,9 @@
 
 ## Results
 
+Follow-up: [live browser, second reviewer and audit verification](BROWSER_CHECK.md).
+The audit delivery bug found there is fixed; the application suite now has 71 passing tests.
+
 70 JavaScript tests and 35 RFID software tests pass locally. Build and dependency checks are documented in the repository publication notes.
 
 |Case|Latest result|Run|

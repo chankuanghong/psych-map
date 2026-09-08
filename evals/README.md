@@ -56,6 +56,10 @@ arithmetic are code; window selection and alignment labels are model output.
 
 ## Scope and interpretation
 
+A subsequent [live browser follow-up](published/BROWSER_CHECK.md) separately
+verified one family-feedback question through the UI, second reviewer and audit
+write. It also records a discovered audit-delivery bug, its fix and remaining UX limitations.
+
 The live runner exercises Engine 1's planner, retrieval tools, synthesis and
 factual renderer, **not** the HTTP/UI, final audit write or second AI reviewer.
 Those boundaries have separate offline tests. Engine 2/3 job functions run for
