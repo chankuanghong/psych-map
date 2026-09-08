@@ -4,9 +4,26 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "demo:setup": "node simulation/bootstrap-demo.mjs",
+    "eval:live": "node evals/run.mjs --live",
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test",
+    "simulation:build": "node simulation/build-simulation.mjs",
+    "simulation:query": "node simulation/patient-gate.mjs",
+    "simulation:ask": "node simulation/ask-codebuddy.mjs",
+    "simulation:sql-experiments": "node simulation/readonly-sql-experiments.mjs",
+    "simulation:codebuddy-evaluation": "node simulation/run-codebuddy-evaluation.mjs",
+    "questions:migrate": "node simulation/migrate-questions.mjs",
+    "questions:seed-synthetic": "node simulation/seed-synthetic-questions.mjs",
+    "questions:replace-synthetic": "node simulation/replace-synthetic-questions.mjs --confirm-replace-synthetic",
+    "questions:add-scenario": "node simulation/add-worker-scenario.mjs",
+    "questions:run-once": "node simulation/run-questions-once.mjs",
+    "research:run-once": "node simulation/run-research-once.mjs",
+    "demo:jobs": "node simulation/run-demo-jobs.mjs",
+    "demo:console": "node demo-console.mjs",
+    "demo:check": "node demo-console.mjs --no-open --exit-after-check"
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -22,6 +39,6 @@
     "autoprefixer": "^10.5.4",
     "postcss": "^8.5.26",
     "tailwindcss": "^3.4.19",
-    "vite": "^5.4.21"
+    "vite": "^6.4.3"
   }
 }

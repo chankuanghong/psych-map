@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Psych-MAP · Live ward presence</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to ward map</a>
+  <header class="site-header">
+    <div class="ui-shell header-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M5 12h2m3-5a7 7 0 0 1 0 10m4-14a12 12 0 0 1 0 18"/></svg>
+        </span>
+        <div class="ui-shrink">
+          <p class="eyebrow">Psych-MAP</p>
+          <h1>Live ward presence</h1>
+        </div>
+      </div>
+      <div id="reader-status" class="connection" role="status" aria-live="polite">
+        <span class="connection-dot"></span>
+        <span>Connecting to reader…</span>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="ui-shell page-shell">
+    <section class="page-intro" aria-labelledby="overview-title">
+      <div class="intro-copy">
+        <p class="eyebrow">Ward 8B · Spatial monitor</p>
+        <h2 id="overview-title">See presence,<br><em>as it happens.</em></h2>
+        <p>One physical RFID reader, placed virtually at a selected ward venue. Live tags appear directly on the map; continuous reads become one visit, not thousands of rows.</p>
+      </div>
+      <div class="summary-strip" aria-label="Live summary">
+        <div class="summary-metric">
+          <span>Live tags detected</span>
+          <strong id="summary-count">—</strong>
+        </div>
+        <div class="summary-metric venue-metric">
+          <span>Scanner venue</span>
+          <strong id="summary-venue">Loading…</strong>
+        </div>
+        <div class="summary-metric">
+          <span>SQLite checkpoint</span>
+          <strong id="summary-sync">5 min</strong>
+        </div>
+      </div>
+    </section>
+
+    <div id="api-error" class="error-banner" role="alert" hidden>
+      <strong>Live data is temporarily unavailable.</strong>
+      <span>The map will retry automatically without losing your selection.</span>
+    </div>
+
+    <section class="workspace" aria-label="Live ward presence workspace">
+      <article class="surface map-card" aria-labelledby="map-title">
+        <div class="card-heading map-heading">
+          <div>
+            <p class="eyebrow">Interactive ward map</p>
+            <h3 id="map-title">Ward 8B</h3>
+          </div>
+          <div class="map-legend" aria-label="Map legend">
+            <span><i class="legend-swatch person-swatch"></i> Person with live RFID</span>
+            <span><i class="legend-swatch away-swatch"></i> Last known / away</span>
+            <span><i class="legend-swatch selected-swatch"></i> Selected room</span>
+          </div>
+        </div>
+        <div class="map-stage">
+          {{FLOORPLAN_SVG}}
+        </div>
+        <div class="map-footer">
+          <p id="map-live-summary" aria-live="polite">Loading live scanner location…</p>
+          <p>Click any room to open its live ledger. Click a person or tag card for that person’s timestamps. Presence is observed at the scanner venue, never inferred from RSSI distance.</p>
+        </div>
+      </article>
+
+      <aside class="control-rail">
+        <section class="surface selection-card" aria-labelledby="selection-title">
+          <div class="card-heading selection-heading">
+            <div>
+              <p class="eyebrow">Map selection</p>
+              <h3 id="selection-title">Room and person details</h3>
+            </div>
+          </div>
+          <p id="selection-empty" class="selection-empty">Select a room or person on the map to see their live ledger here.</p>
+          <section id="room-ledger" class="room-ledger" aria-labelledby="room-ledger-name" aria-live="polite" hidden>
+            <div class="room-ledger-heading">
+              <div>
+                <p class="eyebrow">Room ledger</p>
+                <h4 id="room-ledger-name">Selected room</h4>
+              </div>
+              <strong id="room-ledger-count" class="count">0</strong>
+            </div>
+            <div id="room-ledger-people" class="room-ledger-people"></div>
+            <button id="room-ledger-close" class="inspector-close" type="button" aria-label="Close room ledger">Close</button>
+          </section>
+          <section id="person-inspector" class="location-inspector" aria-labelledby="person-inspector-name" aria-live="polite" hidden>
+            <svg class="inspector-person" viewBox="0 0 5120 5120" aria-hidden="true"><use href="#person-symbol"></use></svg>
+            <div class="inspector-copy">
+              <p class="eyebrow">Selected RFID</p>
+              <h4 id="person-inspector-name">Person location</h4>
+              <strong id="person-inspector-location"></strong>
+              <span id="person-inspector-meta"></span>
+              <code id="person-inspector-tag"></code>
+            </div>
+            <button id="person-inspector-close" class="inspector-close" type="button" aria-label="Close person location">Close</button>
+          </section>
+        </section>
+
+        <section class="surface placement-card" aria-labelledby="placement-title">
+          <div class="current-placement">
+            <span class="placement-orbit" aria-hidden="true"><span></span></span>
+            <div class="ui-shrink">
+              <p class="eyebrow">Reader placement</p>
+              <h3 id="placement-title">Move the scanner</h3>
+              <p>Active at <strong id="active-venue-label">loading…</strong></p>
+              <code id="active-venue-id"></code>
+            </div>
+          </div>
+          <form id="venue-form" class="venue-form">
+            <div class="field">
+              <label for="venue-select">Venue</label>
+              <div class="select-wrap">
+                <select id="venue-select" name="venue_id" required disabled>
+                  <option value="">Loading venues…</option>
+                </select>
+                <svg aria-hidden="true" viewBox="0 0 20 20"><path d="m6 8 4 4 4-4"/></svg>
+              </div>
+            </div>
+            <button id="venue-submit" type="submit" disabled>
+              <span>Relocate scanner</span>
+              <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M4 10h12m-4-4 4 4-4 4"/></svg>
+            </button>
+          </form>
+          <p id="venue-feedback" class="venue-feedback" role="status" aria-live="polite"></p>
+          <p class="placement-note">Moving the scanner closes every active visit at one exact relocation timestamp. New reads open at the new venue.</p>
+        </section>
+
+        <section class="surface presence-card" aria-labelledby="presence-title">
+          <div class="card-heading">
+            <div>
+              <p class="eyebrow">At the scanner venue</p>
+              <h3 id="presence-title">Live RFID tags</h3>
+            </div>
+            <strong id="present-count" class="count">—</strong>
+          </div>
+          <div id="people-list" class="people-list" aria-live="polite" aria-busy="true">
+            <div class="skeleton-row"></div>
+            <div class="skeleton-row"></div>
+          </div>
+        </section>
+      </aside>
+    </section>
+
+    <section class="surface history-card" aria-labelledby="history-title">
+      <div class="card-heading history-heading">
+        <div>
+          <p class="eyebrow">Aggregated sessions</p>
+          <h3 id="history-title">Visit timeline</h3>
+        </div>
+        <div class="history-meta">
+          <span class="live-chip"><i></i> Live audit trail</span>
+          <span id="last-updated">Waiting for first update</span>
+        </div>
+      </div>
+      <div class="history-columns" aria-hidden="true">
+        <span>Person & venue</span><span>Entered</span><span>Exited / last seen</span><span>Duration</span>
+      </div>
+      <div id="history-list" class="history-list" aria-live="polite" aria-busy="true">
+        <div class="empty-state">Waiting for the first presence event…</div>
+      </div>
+    </section>
+
+    <footer class="page-footer">
+      <span>Exact UTC audit timestamps · Asia/Singapore display</span>
+      <span>Signal loss threshold: <strong id="leave-threshold">5</strong>s · Checkpoint: <strong id="sync-threshold">5</strong> min</span>
+    </footer>
+  </main>
+</body>
+</html>

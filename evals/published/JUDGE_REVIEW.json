@@ -1,0 +1,14 @@
+{
+  "judge": "Codex source-by-source review, not a clinician validation",
+  "findings": [
+    "Initial suicidal-thoughts wording conflated a direct reference to ideation with denial of intent. Refined guidance; latest output explicitly distinguishes intent from thoughts.",
+    "Mood and leave plans exceeded field length limits. Explicit concise planning instructions fixed the observed cases.",
+    "Side-effects response mixed insufficient with selected facts and contained a range not supported by its cited statements. Refined output contract and numeric guidance.",
+    "Some responses wrapped valid objects inside contract. Parser normalizes only that single redundant envelope, then validates all facts and inner fields. It does not repair invented values.",
+    "Weekly aligned plus unclear clinician direction passed the initial allowlist but was semantically inconsistent. Added consistency gate and supplied existing shower-change signal. Latest weekly output is unclear with no threshold change.",
+    "A repeated nightly test returned string null, triggering fallback and the wrong category. Exact string-null normalization preserves the allowlist and corrected the observed transport error.",
+    "Latest selected answers preserve major distinctions: activation is not mood, food preparation is not intake, transport support is not a caregiving agreement, prescription is not taking medication.",
+    "Residual limits: model-selected windows can be sparse and biased; statements about missing documentation apply only to retrieved records. Scale examples in missing-information requests are model suggestions, not requirements or validated clinical recommendations.",
+    "Latest successes combine targeted runs; this is not a claim that a new full run or every paraphrase will succeed."
+  ]
+}

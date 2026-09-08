@@ -1,13 +1,14 @@
 // ============================================================
-// Synthetic behavioural event data — PT-001 (Primary Demo)
+// De-identified and rehashed behavioural demonstration data — PT-001 (Primary Demo)
 // 14-day trajectory per AGENTS.md §6 Golden Demo Patient
 //
-// DISCLAIMER: All data is entirely synthetic and simulated.
+// DISCLAIMER: Direct identifiers are removed; this local prototype must not be treated as a clinical record.
 // No real patient information is used or represented.
 // ============================================================
 
-// Admission start date (Day 1 = 2026-07-30)
-export const ADMISSION_DATE = new Date('2026-07-30T07:00:00')
+// Calendar anchor for Day 1. The explicit offset keeps authored HH:mm values
+// stable across machines and avoids treating the 07:00 waking-window start as midnight.
+export const ADMISSION_DATE = new Date('2026-07-30T00:00:00+08:00')
 
 const day = (n) => new Date(ADMISSION_DATE.getTime() + (n - 1) * 86400000)
 const ts = (n, h, m = 0) => new Date(day(n).getTime() + h * 3600000 + m * 60000).toISOString()
@@ -283,7 +284,7 @@ export const CLINICAL_EVENTS = [
     discipline: 'Medication',
     eventType: 'medication_change',
     title: 'Risperidone initiated — 2 mg daily',
-    description: 'Synthetic prescription: risperidone 2 mg daily was initiated. Behaviour, tolerability and adverse effects were planned for clinical review.',
+    description: 'De-identified record: risperidone 2 mg daily was initiated. Behaviour, tolerability and adverse effects were planned for clinical review.',
   },
   {
     patientId: 'PT-001',
@@ -299,7 +300,7 @@ export const CLINICAL_EVENTS = [
     discipline: 'Medication',
     eventType: 'medication_change',
     title: 'Risperidone increased — 3 mg daily',
-    description: 'Synthetic titration step: risperidone increased from 2 mg to 3 mg daily following review. Location signals do not establish treatment response or tolerability.',
+    description: 'De-identified titration record: risperidone increased from 2 mg to 3 mg daily following review. Location signals do not establish treatment response or tolerability.',
   },
   {
     patientId: 'PT-001',
@@ -315,7 +316,7 @@ export const CLINICAL_EVENTS = [
     discipline: 'Medication',
     eventType: 'medication_change',
     title: 'Risperidone increased — 4 mg daily',
-    description: 'Synthetic titration step: risperidone increased from 3 mg to 4 mg daily. Increased environmental and activity-room engagement appeared in subsequent days alongside OT behavioural activation; attribution to either intervention is not possible from these data.',
+    description: 'De-identified titration record: risperidone increased from 3 mg to 4 mg daily. Increased environmental and activity-room engagement appeared in subsequent days alongside OT behavioural activation; attribution to either intervention is not possible from these data.',
   },
   {
     patientId: 'PT-001',
@@ -437,13 +438,13 @@ const generateOcdPersona = () => {
   }
   const clinicalEvents = [
     { patientId, timestamp: ts(1, 11, 0), discipline: 'Psychiatry', eventType: 'psychiatrist_review', title: 'Admission assessment — OCD presentation', description: 'Assessment documented contamination-related concerns and extended washing rituals affecting ward routine.' },
-    { patientId, timestamp: ts(1, 18, 0), discipline: 'Medication', eventType: 'medication_change', title: 'Sertraline initiated — 50 mg mane', description: 'Synthetic prescription: sertraline 50 mg each morning was initiated. This event is contextual and does not establish a medication effect.' },
+    { patientId, timestamp: ts(1, 18, 0), discipline: 'Medication', eventType: 'medication_change', title: 'Sertraline initiated — 50 mg mane', description: 'De-identified record: sertraline 50 mg each morning was initiated. This event is contextual and does not establish a medication effect.' },
     { patientId, timestamp: ts(3, 10, 30), discipline: 'Nursing', eventType: 'nursing_intervention', title: 'Prolonged morning shower occupancy documented', description: 'Morning shower occupancy exceeded 1h 30m and delayed breakfast attendance. Duration recorded as a behavioural signal; the content of the ritual was not inferred.' },
-    { patientId, timestamp: ts(15, 9, 0), discipline: 'Medication', eventType: 'medication_change', title: 'Sertraline increased — 100 mg mane', description: 'Synthetic titration step: sertraline increased from 50 mg to 100 mg each morning following psychiatric review. Ongoing symptom, function and tolerability review was planned.' },
+    { patientId, timestamp: ts(15, 9, 0), discipline: 'Medication', eventType: 'medication_change', title: 'Sertraline increased — 100 mg mane', description: 'De-identified titration record: sertraline increased from 50 mg to 100 mg each morning following psychiatric review. Ongoing symptom, function and tolerability review was planned.' },
     { patientId, timestamp: ts(21, 11, 0), discipline: 'MDT', eventType: 'mdt_review', title: 'Day 21 MDT review — morning routine disruption', description: 'Repeated prolonged shower use was reviewed alongside reported distress and delayed morning participation.' },
     { patientId, timestamp: ts(22, 9, 30), discipline: 'OT', eventType: 'ot_intervention', title: 'Graded morning-routine plan initiated', description: 'OT and nursing introduced a collaborative, graded morning routine with patient agreement.' },
-    { patientId, timestamp: ts(29, 9, 0), discipline: 'Medication', eventType: 'medication_change', title: 'Sertraline increased — 150 mg mane', description: 'Synthetic titration step: sertraline increased from 100 mg to 150 mg each morning. Shower-area duration remained elevated; behavioural data alone cannot determine symptom response.' },
-    { patientId, timestamp: ts(43, 9, 0), discipline: 'Medication', eventType: 'medication_change', title: 'Sertraline increased — 200 mg mane', description: 'Synthetic titration step: sertraline increased from 150 mg to 200 mg each morning. A gradual reduction in shower-area duration followed across later weeks alongside the structured routine plan; causality is not established.' },
+    { patientId, timestamp: ts(29, 9, 0), discipline: 'Medication', eventType: 'medication_change', title: 'Sertraline increased — 150 mg mane', description: 'De-identified titration record: sertraline increased from 100 mg to 150 mg each morning. Shower-area duration remained elevated; behavioural data alone cannot determine symptom response.' },
+    { patientId, timestamp: ts(43, 9, 0), discipline: 'Medication', eventType: 'medication_change', title: 'Sertraline increased — 200 mg mane', description: 'De-identified titration record: sertraline increased from 150 mg to 200 mg each morning. A gradual reduction in shower-area duration followed across later weeks alongside the structured routine plan; causality is not established.' },
     { patientId, timestamp: ts(45, 11, 0), discipline: 'MDT', eventType: 'mdt_review', title: 'Day 45 routine review', description: 'Shower duration was reducing gradually, with morning participation beginning to improve.' },
     { patientId, timestamp: ts(70, 10, 30), discipline: 'OT', eventType: 'ot_intervention', title: 'Day 70 routine generalisation review', description: 'The patient reviewed strategies for maintaining the morning routine with less prompting.' },
     { patientId, timestamp: ts(90, 11, 0), discipline: 'MDT', eventType: 'mdt_review', title: 'Day 90 long-stay review', description: 'Shower duration was substantially below the Day 21 peak but remained a relevant functional pattern for discharge planning.' },
@@ -483,9 +484,9 @@ const generateHypomaniaPersona = () => {
   const clinicalEvents = [
     { patientId, timestamp: ts(1, 10, 0), discipline: 'Psychiatry', eventType: 'psychiatrist_review', title: 'Admission assessment — elevated activation', description: 'Elevated mood, increased goal-directed activity and reduced rest were documented at admission.' },
     { patientId, timestamp: ts(4, 14, 0), discipline: 'Nursing', eventType: 'nursing_intervention', title: 'Increasing social approach documented', description: 'Location pattern showed rapid movement through shared areas and neighbouring cubicles. The patient described actively seeking new friendships; location alone does not confirm the quality of interaction.' },
-    { patientId, timestamp: ts(4, 18, 0), discipline: 'Medication', eventType: 'medication_change', title: 'Quetiapine initiated — 100 mg/day in divided doses', description: 'Synthetic prescription: quetiapine was initiated at a total of 100 mg/day in divided doses while roaming, neighbouring-cubicle presence and reduced overnight rest proxy were escalating.' },
-    { patientId, timestamp: ts(5, 18, 0), discipline: 'Medication', eventType: 'medication_change', title: 'Quetiapine increased — 200 mg/day in divided doses', description: 'Synthetic titration step: total daily quetiapine increased from 100 mg to 200 mg. Behavioural signals remained elevated; location does not establish mental state, sleep or tolerability.' },
-    { patientId, timestamp: ts(6, 18, 0), discipline: 'Medication', eventType: 'medication_change', title: 'Quetiapine increased — 300 mg/day in divided doses', description: 'Synthetic titration step: total daily quetiapine increased from 200 mg to 300 mg while neighbouring-cubicle presence continued toward its Day 7 peak.' },
+    { patientId, timestamp: ts(4, 18, 0), discipline: 'Medication', eventType: 'medication_change', title: 'Quetiapine initiated — 100 mg/day in divided doses', description: 'De-identified record: quetiapine was initiated at a total of 100 mg/day in divided doses while roaming, neighbouring-cubicle presence and reduced overnight rest proxy were escalating.' },
+    { patientId, timestamp: ts(5, 18, 0), discipline: 'Medication', eventType: 'medication_change', title: 'Quetiapine increased — 200 mg/day in divided doses', description: 'De-identified titration record: total daily quetiapine increased from 100 mg to 200 mg. Behavioural signals remained elevated; location does not establish mental state, sleep or tolerability.' },
+    { patientId, timestamp: ts(6, 18, 0), discipline: 'Medication', eventType: 'medication_change', title: 'Quetiapine increased — 300 mg/day in divided doses', description: 'De-identified titration record: total daily quetiapine increased from 200 mg to 300 mg while neighbouring-cubicle presence continued toward its Day 7 peak.' },
     {
       patientId,
       timestamp: ts(6, 16, 50),
@@ -500,7 +501,7 @@ const generateHypomaniaPersona = () => {
         outcome: 'The patient accepted the lower-stimulation area; no physical contact or injury was documented.',
       },
     },
-    { patientId, timestamp: ts(7, 18, 0), discipline: 'Medication', eventType: 'medication_change', title: 'Quetiapine increased — 400 mg/day in divided doses', description: 'Synthetic titration step: total daily quetiapine increased from 300 mg to 400 mg following psychiatric review. Neighbouring-cubicle presence and roaming reduced over subsequent days while overnight assigned-cubicle presence increased; this temporal sequence does not prove medication effect.' },
+    { patientId, timestamp: ts(7, 18, 0), discipline: 'Medication', eventType: 'medication_change', title: 'Quetiapine increased — 400 mg/day in divided doses', description: 'De-identified titration record: total daily quetiapine increased from 300 mg to 400 mg following psychiatric review. Neighbouring-cubicle presence and roaming reduced over subsequent days while overnight assigned-cubicle presence increased; this temporal sequence does not prove medication effect.' },
     { patientId, timestamp: ts(8, 10, 30), discipline: 'Nursing', eventType: 'nursing_review', title: 'Post-DAV nursing review', description: 'The patient reviewed the documented episode with nursing staff. No further DAV episode was documented during the following two days; this absence does not by itself establish sustained risk reduction.' },
     { patientId, timestamp: ts(9, 11, 0), discipline: 'Nursing', eventType: 'nursing_intervention', title: 'Social roaming beginning to settle', description: 'Visits to other cubicles and repeated movement across shared spaces began reducing while time in the assigned cubicle increased.' },
     { patientId, timestamp: ts(12, 10, 30), discipline: 'Psychiatry', eventType: 'psychiatrist_review', title: 'Post-titration review', description: 'Behavioural activation was closer to the early admission range. Temporal association noted; causality not established.' },

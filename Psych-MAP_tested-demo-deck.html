@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Psych-MAP — Evidence, Agents and Evaluations</title>
+  <style>
+    :root { --ink:#102a43; --soft:#486177; --muted:#7b8fa2; --teal:#138a83; --teal-soft:#dff2ef; --blue:#4777c8; --blue-soft:#eaf1f7; --purple:#77719a; --purple-soft:#eeecf5; --amber:#a86f28; --amber-soft:#fbf1df; --red:#bc5d5d; --paper:#fcfdfc; --line:#dbe5e8; --shadow:0 24px 70px rgba(34,66,77,.14); }
+    * { box-sizing:border-box; }
+    html,body { width:100%; height:100%; margin:0; overflow:hidden; }
+    body { font-family:Inter,Aptos,"Segoe UI",system-ui,sans-serif; color:var(--ink); background:radial-gradient(circle at 14% 15%,rgba(19,138,131,.08),transparent 28%),radial-gradient(circle at 88% 82%,rgba(119,113,154,.07),transparent 30%),#eaf0f1; -webkit-font-smoothing:antialiased; }
+    button { font:inherit; }
+    .stage { position:fixed; inset:0; display:grid; place-items:center; padding:2.2vh 2.2vw; }
+    .deck { position:relative; width:min(95vw,calc(92vh * 16 / 9)); aspect-ratio:16/9; overflow:hidden; border:1px solid rgba(125,151,159,.24); border-radius:clamp(10px,1vw,18px); background:var(--paper); box-shadow:var(--shadow); }
+    .slide { position:absolute; inset:0; display:grid; padding:6.1% 7%; opacity:0; visibility:hidden; transform:translateX(3%); transition:opacity 280ms ease,transform 400ms cubic-bezier(.22,.8,.25,1),visibility 280ms; background:linear-gradient(90deg,rgba(19,138,131,.025) 1px,transparent 1px),linear-gradient(rgba(19,138,131,.025) 1px,transparent 1px),var(--paper); background-size:30px 30px; }
+    .slide::before { content:""; position:absolute; inset:0 0 auto; height:7px; background:linear-gradient(90deg,var(--ink) 0 28%,var(--teal) 28% 100%); }
+    .slide.active { opacity:1; visibility:visible; transform:none; z-index:2; }
+    .slide.previous { transform:translateX(-3%); }
+    .eyebrow { margin:0 0 1rem; color:var(--teal); font-size:clamp(10px,.85vw,16px); font-weight:780; letter-spacing:.16em; text-transform:uppercase; }
+    h1,h2,h3,p { margin-top:0; }
+    h1 { margin-bottom:1.35rem; font-size:clamp(40px,5.5vw,92px); line-height:.98; letter-spacing:-.052em; }
+    h2 { margin-bottom:1rem; max-width:18ch; font-size:clamp(30px,3.65vw,62px); line-height:1.04; letter-spacing:-.04em; }
+    h3 { font-size:clamp(16px,1.35vw,24px); line-height:1.15; }
+    .lead { max-width:35ch; color:var(--soft); font-size:clamp(16px,1.45vw,26px); line-height:1.48; }
+    .quiet { color:var(--muted); }
+    .accent { color:var(--teal); }
+    .brand { position:absolute; top:4%; left:5%; display:flex; align-items:center; gap:.55rem; font-weight:780; }
+    .brand img { width:clamp(28px,2.3vw,42px); }
+    .brand b { color:var(--teal); }
+    .slide-notes { display:none; }
+
+    .hero { align-content:center; justify-items:center; text-align:center; padding:8% 10%; }
+    .hero-lockup { display:flex; align-items:center; justify-content:center; gap:1.6rem; margin-bottom:2.4rem; }
+    .hero-lockup img { width:clamp(110px,11vw,190px); }
+    .hero-name { text-align:left; font-size:clamp(58px,7vw,116px); font-weight:820; line-height:.84; letter-spacing:-.07em; }
+    .hero-name span { color:var(--teal); }
+    .blind-row { width:min(58rem,90%); display:grid; grid-template-columns:9rem 1fr 12rem; gap:1rem; align-items:center; padding:.8rem 0; border-top:1px solid var(--line); text-align:left; }
+    .blind-row small { color:var(--muted); font-weight:760; letter-spacing:.06em; text-transform:uppercase; }
+    .blind-row b { color:var(--soft); }
+    .blind-row span { color:var(--teal); font-weight:780; }
+    .blind-row:last-child span { color:var(--purple); }
+
+    .map-slide { grid-template-rows:auto 1fr auto; }
+    .meaning-grid { align-self:center; display:grid; grid-template-columns:.75fr repeat(3,1fr); gap:3%; align-items:center; }
+    .map-word { font-size:clamp(76px,10vw,164px); line-height:.8; font-weight:820; letter-spacing:-.09em; }
+    .meaning { min-height:60%; padding-left:1.2rem; border-left:2px solid var(--line); }
+    .meaning:nth-child(3) { border-color:#9ed3cc; }
+    .meaning:nth-child(4) { border-color:#c4bfd9; }
+    .meaning small { color:var(--muted); font-weight:700; }
+    .meaning h3 { margin:.9rem 0 .55rem; }
+    .meaning p { color:var(--muted); font-size:clamp(12px,.95vw,17px); line-height:1.45; }
+    .fineprint { margin:0; color:var(--muted); font-size:clamp(10px,.78vw,14px); }
+
+    .apps-slide,.engines-slide,.stack-slide { grid-template-rows:auto 1fr auto; }
+    .three-cards { align-self:center; display:grid; grid-template-columns:repeat(3,1fr); gap:2.2%; }
+    .feature-card { position:relative; min-height:18rem; padding:1.35rem 1.4rem; border-top:5px solid var(--ink); background:linear-gradient(180deg,var(--blue-soft),rgba(255,255,255,.5)); }
+    .feature-card:nth-child(2) { border-color:var(--teal); background:linear-gradient(180deg,var(--teal-soft),rgba(255,255,255,.5)); }
+    .feature-card:nth-child(3) { border-color:var(--purple); background:linear-gradient(180deg,var(--purple-soft),rgba(255,255,255,.5)); }
+    .card-number { color:var(--muted); font:760 clamp(10px,.75vw,13px)/1 ui-monospace,monospace; letter-spacing:.08em; }
+    .feature-card h3 { margin:.8rem 0 .65rem; }
+    .feature-card p { color:var(--soft); font-size:clamp(12px,.93vw,17px); line-height:1.46; }
+    .feature-card ul { margin:.9rem 0 0; padding:0; list-style:none; color:var(--muted); font-size:clamp(11px,.82vw,15px); line-height:1.65; }
+    .feature-card li::before { content:"✓"; margin-right:.55rem; color:var(--teal); font-weight:800; }
+    .shared-db { justify-self:center; margin:1rem 0 0; padding:.62rem 1rem; border-top:1px solid var(--line); color:var(--soft); font-size:clamp(12px,.95vw,17px); }
+    .shared-db b { color:var(--teal); }
+
+    .engines-slide h2 { max-width:22ch; }
+    .engine-card { min-height:17rem; }
+    .engine-card .trigger { display:inline-block; margin:.2rem 0 .8rem; padding:.28rem .55rem; border-radius:999px; background:white; color:var(--soft); font:700 clamp(9px,.68vw,12px)/1.2 ui-monospace,monospace; }
+    .human-loop { justify-self:center; color:var(--soft); font-size:clamp(12px,.96vw,17px); }
+    .human-loop b { color:var(--purple); }
+
+    .graph-slide { grid-template-columns:.72fr 1.28fr; grid-template-rows:auto 1fr; align-items:center; gap:4%; }
+    .graph-copy h2 { max-width:11ch; }
+    .graph-copy p { color:var(--soft); font-size:clamp(13px,1vw,18px); line-height:1.5; }
+    .graph-points { display:grid; gap:.55rem; margin-top:1.25rem; }
+    .graph-point { display:grid; grid-template-columns:.7rem 1fr; gap:.65rem; align-items:start; color:var(--soft); font-size:clamp(11px,.86vw,15px); line-height:1.4; }
+    .graph-point::before { content:""; width:.55rem; height:.55rem; margin-top:.25rem; border-radius:50%; background:var(--blue); }
+    .graph-point:nth-child(2)::before { background:var(--red); }
+    .graph-point:nth-child(3)::before { background:var(--teal); }
+    .chart { width:100%; padding:1rem 1rem .55rem; border:1px solid var(--line); background:white; }
+    .chart svg { display:block; width:100%; height:auto; overflow:visible; }
+    .chart text { fill:var(--soft); font-family:inherit; font-size:11px; }
+    .chart .axis { stroke:#7890a1; stroke-width:1; }
+    .chart .grid { stroke:#dbe5e8; stroke-width:1; stroke-dasharray:3 5; }
+    .chart .intervention { stroke:var(--ink); stroke-dasharray:5 5; }
+    .chart .series { fill:none; stroke-width:4; stroke-linecap:round; stroke-linejoin:round; stroke-dasharray:1; stroke-dashoffset:1; }
+    .active .chart .series { animation:draw 2.2s ease forwards; }
+    .active .chart .series:nth-of-type(2) { animation-delay:.28s; }
+    .active .chart .series:nth-of-type(3) { animation-delay:.56s; }
+    @keyframes draw { to { stroke-dashoffset:0; } }
+
+    .guardrail-slide { grid-template-rows:auto 1fr auto; }
+    .guardrail-grid { align-self:center; display:grid; grid-template-columns:1fr auto 1fr auto 1fr; gap:1.25rem; align-items:center; }
+    .guard-step { padding:1.35rem; border-top:4px solid var(--ink); background:var(--blue-soft); text-align:center; }
+    .guard-step:nth-of-type(2) { border-color:var(--teal); background:var(--teal-soft); }
+    .guard-step:nth-of-type(3) { border-color:var(--purple); background:var(--purple-soft); }
+    .guard-step strong { display:block; margin-bottom:.55rem; font-size:clamp(17px,1.35vw,24px); }
+    .guard-step span { color:var(--soft); font-size:clamp(11px,.85vw,15px); line-height:1.4; }
+    .arrow { color:var(--teal); font-size:2rem; }
+    .guard-note { justify-self:center; color:var(--soft); font-size:clamp(12px,.95vw,17px); }
+    .guard-note b { color:var(--teal); }
+
+    .stack-slide h2 { max-width:22ch; }
+    .stack-grid { align-self:center; display:grid; grid-template-columns:repeat(4,1fr); gap:1.7%; }
+    .stack-layer { padding:1.15rem 1rem; min-height:18rem; border-top:5px solid var(--ink); background:white; box-shadow:0 10px 26px rgba(41,75,87,.07); }
+    .stack-layer:nth-child(2) { border-color:#537990; }
+    .stack-layer:nth-child(3) { border-color:var(--teal); }
+    .stack-layer:nth-child(4) { border-color:var(--purple); }
+    .stack-label { color:var(--muted); font:760 clamp(9px,.68vw,12px)/1 ui-monospace,monospace; letter-spacing:.09em; }
+    .stack-layer h3 { margin:.7rem 0 .8rem; }
+    .stack-layer dl { margin:0; display:grid; gap:.72rem; }
+    .stack-layer dt { color:var(--ink); font-size:clamp(11px,.82vw,15px); font-weight:760; }
+    .stack-layer dd { margin:.18rem 0 0; color:var(--muted); font-size:clamp(10px,.74vw,13px); line-height:1.35; }
+    .stack-rule { justify-self:center; margin:0; color:var(--soft); font-size:clamp(12px,.95vw,17px); }
+    .stack-rule b:first-child { color:var(--teal); }
+    .stack-rule b:last-child { color:var(--purple); }
+
+    .demo-slide { grid-template-rows:auto 1fr auto; }
+    .demo-flow { align-self:center; display:grid; grid-template-columns:repeat(5,1fr); gap:.8rem; align-items:stretch; }
+    .demo-step { position:relative; padding:1rem .9rem; border-top:3px solid var(--line); background:white; }
+    .demo-step::after { content:"→"; position:absolute; right:-.8rem; top:48%; color:var(--teal); font-size:1.4rem; }
+    .demo-step:last-child::after { display:none; }
+    .demo-step small { color:var(--teal); font-weight:800; }
+    .demo-step strong { display:block; margin:.55rem 0; font-size:clamp(13px,1vw,18px); }
+    .demo-step span { color:var(--muted); font-size:clamp(10px,.72vw,13px); line-height:1.35; }
+    .ready { justify-self:center; padding:.65rem 1rem; color:var(--teal); border:1px solid #b9ded9; background:var(--teal-soft); font-size:clamp(12px,.92vw,16px); font-weight:780; }
+
+    .closing { align-content:center; justify-items:start; padding-left:12%; }
+    .closing h2 { max-width:15ch; font-size:clamp(50px,6.25vw,104px); line-height:.95; }
+    .closing h2 span { display:block; }
+    .closing h2 span:nth-child(2) { color:var(--teal); }
+    .closing p { color:var(--soft); font-size:clamp(15px,1.25vw,22px); }
+
+    .controls { position:fixed; left:50%; bottom:2.2vh; z-index:20; display:flex; align-items:center; gap:.65rem; transform:translateX(-50%); }
+    .control { display:grid; place-items:center; width:2.5rem; height:2.5rem; border:1px solid rgba(84,110,120,.25); border-radius:50%; color:var(--soft); background:rgba(252,253,252,.92); box-shadow:0 6px 18px rgba(31,65,76,.1); cursor:pointer; }
+    .control:focus-visible { outline:2px solid var(--teal); outline-offset:2px; }
+    .count { min-width:4rem; color:var(--muted); text-align:center; font:650 .78rem/1 ui-monospace,monospace; }
+    .progress { position:absolute; left:0; right:0; bottom:0; z-index:8; height:5px; background:#dbe5e8; }
+    .progress-fill { height:100%; width:11.11%; background:var(--teal); transition:width 300ms ease; }
+    .hint { position:fixed; right:2vw; bottom:2.8vh; color:rgba(64,87,96,.72); font-size:.74rem; }
+    .notes { position:fixed; right:2.4vw; top:50%; z-index:30; width:min(29rem,37vw); max-height:72vh; overflow:auto; padding:1.35rem; border-radius:.85rem; color:#dce8e7; background:rgba(16,42,67,.97); box-shadow:var(--shadow); opacity:0; visibility:hidden; transform:translate(20px,-50%); transition:200ms ease; }
+    .notes.open { opacity:1; visibility:visible; transform:translate(0,-50%); }
+    .notes h3 { color:white; }
+    .notes p { font-size:.9rem; line-height:1.5; }
+    .notes .time { color:#86d4cc; font:700 .75rem/1 ui-monospace,monospace; }
+    @media (max-width:760px) { .hint{display:none}.deck{width:96vw}.slide{padding:7% 5%}.feature-card,.engine-card,.stack-layer{min-height:0}.three-cards,.stack-grid{gap:1%}.feature-card{padding:.75rem}.feature-card p,.feature-card li{font-size:9px}.graph-slide{grid-template-columns:.6fr 1.4fr}.chart{padding:.35rem}.demo-step{padding:.6rem}.notes{width:80vw} }
+    @media (prefers-reduced-motion:reduce) { .slide,.progress-fill,.series{transition:none!important;animation:none!important;stroke-dashoffset:0!important} }
+    @media print { html,body{overflow:visible;background:white}.stage{position:static;display:block;padding:0}.deck{width:100%;overflow:visible;border:0;box-shadow:none}.slide{position:relative;width:100%;aspect-ratio:16/9;break-after:page;opacity:1!important;visibility:visible!important;transform:none!important}.controls,.hint,.notes,.progress{display:none} }
+    /* A fixed presentation canvas scales as one unit, so no card or footer clips. */
+    .stage { display:flex; align-items:center; justify-content:center; padding:0; }
+    .deck { width:1280px!important; height:720px; flex-shrink:0; transform:scale(var(--deck-scale,.6)); transform-origin:center; }
+    .slide { padding:64px 80px; }
+    .slide h2 { font-size:44px; }
+    .slide .eyebrow { font-size:13px; margin-bottom:16px; }
+    .safety-roles,.safety-controls { grid-template-rows:auto 1fr auto; gap:24px; }
+    .safety-roles h2,.safety-controls h2 { max-width:none; margin:0; }
+    .responsibilities { display:grid; grid-template-columns:repeat(3,1fr); gap:32px; align-content:center; }
+    .responsibilities section { border-top:4px solid var(--ink); padding-top:18px; }
+    .responsibilities section:nth-child(2) { border-color:var(--teal); }
+    .responsibilities section:nth-child(3) { border-color:var(--purple); }
+    .responsibility-label { color:var(--soft); font-size:12px; font-weight:750; letter-spacing:.08em; margin-bottom:12px; }
+    .responsibilities h3 { font-size:25px; margin-bottom:18px; }
+    .responsibilities ul { padding-left:20px; margin:0; color:var(--soft); font-size:19px; line-height:1.45; }
+    .responsibilities li { margin-bottom:12px; }
+    .safety-takeaway { margin:0; padding-top:16px; border-top:1px solid var(--line); font-size:21px; color:var(--teal); font-weight:650; }
+    .safety-table { align-self:center; width:100%; border-collapse:collapse; table-layout:fixed; text-align:left; }
+    .safety-table th { font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--teal); padding:12px 16px; border-bottom:2px solid var(--teal); }
+    .safety-table td { font-size:19px; line-height:1.35; padding:17px 16px; vertical-align:top; border-bottom:1px solid var(--line); color:var(--soft); }
+    .safety-table th:first-child { width:24%; }
+    .safety-table th:nth-child(2) { width:47%; }
+    .safety-table td:first-child { color:var(--ink); font-weight:650; }
+    .safety-bottom p { margin:0 0 10px; font-size:16px; line-height:1.4; color:var(--soft); }
+    .safety-bottom p:last-child { margin-bottom:0; color:var(--ink); }
+    @media print { .stage{display:block}.deck{height:auto;transform:none}.chart .series { animation:none!important; stroke-dashoffset:0!important; } }
+  .tested{grid-template-rows:auto 1fr auto;gap:22px}.tested h2{max-width:none;margin:0;line-height:1.12}.test-body{align-self:center;font-size:23px;line-height:1.45;color:var(--soft)}.test-body p{margin:0 0 18px}.test-lead{font-size:32px;max-width:900px}.test-footer{font-size:15px!important;line-height:1.4;color:var(--muted);margin:0}.test-table{width:100%;border-collapse:collapse;font-size:21px}.test-table th{text-align:left;color:var(--teal);font-size:17px;border-bottom:2px solid var(--teal)}.test-table th,.test-table td{padding:15px 12px;vertical-align:top}.test-table td{border-bottom:1px solid var(--line)}.test-table td:first-child{font-weight:700;color:var(--ink)}.test-columns{display:grid;grid-template-columns:1fr 1fr;gap:38px;align-items:center}.test-columns pre{font-size:17px;line-height:1.3;white-space:pre-wrap;margin:0;background:var(--blue-soft);padding:18px}.test-columns h3{font-size:26px}.test-columns svg{width:100%;font:22px system-ui}.test-question{font-size:27px;color:var(--ink)}.test-callout{margin-top:18px!important;font-size:22px}.graph-copy h2{font-size:38px}.graph-copy p{font-size:19px}.graph-point{font-size:16px} .slide{transition:none}.series{animation:none!important;stroke-dashoffset:0!important}.tested h2{font-size:44px}.test-body{font-size:25px}.test-body p{margin-bottom:22px}.test-table{font-size:22px}.test-table td,.test-table th{padding:13px 10px}.test-footer{font-size:16px!important}.test-lead{font-size:34px}.test-question{font-size:28px}</style>
+</head>
+<body>
+  <div class="stage">
+    <main class="deck" aria-label="Psych-MAP hackathon pitch deck">
+      <section class="slide tested"><h2>Psych-MAP<br><span class="accent">Clinical context you can inspect</span></h2><div class="test-body"><p class="test-lead">Spatial observations and clinical notes, connected by an AI agent that shows its evidence.</p><p>A hackathon prototype for multidisciplinary psychiatric care.</p></div><p class="test-footer">Synthetic demonstration cases. Research prototype requiring clinical validation.</p><div class="slide-notes"><p>Synthetic demonstration cases. Research prototype requiring clinical validation.</p></div></section>
+<section class="slide tested"><h2>The questions behind the data</h2><div class="test-body"><p class="test-lead">“Has the patient been sleeping?”</p><p>Room presence can show where a tag was detected. It cannot establish sleep quality.</p><p>Psych-MAP connects the question to relevant records and tells staff what is still unknown.</p></div><p class="test-footer">The same distinction applies to eating, medication-taking, mood and symptoms.</p><div class="slide-notes"><p>The same distinction applies to eating, medication-taking, mood and symptoms.</p></div></section>
+<section class="slide tested"><h2>Three connected applications</h2><div class="test-body"><table class="test-table"><thead><tr><th>App</th><th>What the team sees</th></tr></thead><tbody><tr><td>Clinician Psych-MAP</td><td>Patient map, trends, notes, questions and source-linked answers</td></tr><tr><td>Question Intelligence</td><td>Question heat map, catalogue and inline policy/recommendation review</td></tr><tr><td>RFID dashboard</td><td>Tag reads, scanner venue and inferred presence history</td></tr></tbody></table></div><p class="test-footer">React/Vite and Python interfaces share the application SQLite database. Question/review stores remain separate.</p><div class="slide-notes"><p>React/Vite and Python interfaces share the application SQLite database. Question/review stores remain separate.</p></div></section>
+<section class="slide tested"><h2>Engine 1: the agent investigates</h2><div class="test-body"><p class="test-question">“Compare overnight assigned-cubicle presence on Day 7 and Day 11.”</p><table class="test-table"><thead><tr><th>Application-computed observation</th><th>Day 7</th><th>Day 11</th></tr></thead><tbody><tr><td>Recorded overnight presence</td><td>140 minutes</td><td>350 minutes</td></tr></tbody></table><p class="test-callout">CodeBuddy selects tools and explains uncertainty. The application retrieves records and calculates values.</p></div><p class="test-footer">Actual synthetic PT-003 evaluation. The difference does not establish sleep improvement or medication effect.</p><div class="slide-notes"><p>Full input, JSON plan, executed tools, source IDs and model output are in evals/published/engine-1.md.</p></div></section>
+<section class="slide tested"><h2>Clinical questions, honest limits</h2><div class="test-body"><table class="test-table"><thead><tr><th>Doctor asks</th><th>What the evaluated agent established</th></tr></thead><tbody><tr><td>Medication taken?</td><td>Insufficient evidence. Request administration or observed-taking records.</td></tr><tr><td>Suicidal thoughts?</td><td>Denial of intent does not establish absence of thoughts. Request explicit ideation documentation.</td></tr><tr><td>Family feedback?</td><td>Cites the sister’s recorded observations and transport availability.</td></tr></tbody></table></div><p class="test-footer">All 14 doctor-question outputs are published, including the facts, interpretation and additional information requested.</p><div class="slide-notes"><p>All 14 doctor-question outputs are published, including the facts, interpretation and additional information requested.</p></div></section>
+<section class="slide tested"><h2>Engine 2: questions become reviewable patterns</h2><div class="test-body"><table class="test-table"><thead><tr><th>Step</th><th>Actual example</th></tr></thead><tbody><tr><td>Staff questions</td><td>Two professions ask about corridor versus assigned-cubicle time</td></tr><tr><td>CodeBuddy decision</td><td>One location / ward-area intent</td></tr><tr><td>Code checks</td><td>Count two; repeat scan imports zero additional records</td></tr><tr><td>Human decision</td><td>New coverage proposal stays pending until approval</td></tr></tbody></table></div><p class="test-footer">The evaluation tests approval and revocation in an isolated SQLite store. Exact-repeat matching is code, not AI.</p><div class="slide-notes"><p>The evaluation tests approval and revocation in an isolated SQLite store. Exact-repeat matching is code, not AI.</p></div></section>
+<section class="slide tested"><h2>Engine 3: research without automatic changes</h2><div class="test-body"><table class="test-table"><thead><tr><th>Existing spatial metric</th><th>Before mean</th><th>After mean</th></tr></thead><tbody><tr><td>Outside assigned cubicle</td><td>195</td><td>233</td></tr><tr><td>Activity</td><td>20</td><td>39</td></tr><tr><td>Shower-area presence</td><td>99</td><td>106</td></tr></tbody></table><p class="test-callout">Latest alignment: <strong>unclear</strong>. Keep thresholds unchanged and review the evidence.</p></div><p class="test-footer">Minutes per selected day. Before: 1, 3, 14, 21. After: 25, 30, 45, 70.</p><div class="slide-notes"><p>Existing fictional PT-002 case. Model-selected sparse windows can introduce bias. The cited clinician note is: OT and nursing introduced a collaborative, graded morning routine with patient agreement. Literature access and validated threshold estimation are future work.</p></div></section>
+<section class="slide graph-slide" >
+        <div class="graph-copy"><p class="eyebrow">Illustration only · conceptual trajectories</p><h2>Adaptive threshold learning</h2><p>A research hypothesis: useful activity ranges may vary across patients and over time. The curves and bands are illustrative, not measured outcomes.</p><div class="graph-points"><div class="graph-point">Illustrative pattern: high activity.</div><div class="graph-point">Illustrative pattern: fluctuating activity.</div><div class="graph-point">Illustrative pattern: low activity.</div></div></div>
+        <figure class="chart" aria-label="Activity patterns before and after intervention">
+          <svg viewBox="0 0 720 430" role="img" aria-label="Three illustrative activity trajectories converge toward a comfortable band after intervention">
+            <defs><linearGradient id="highBand" x1="0" x2="1"><stop stop-color="#bc5d5d" stop-opacity=".28"/><stop offset="1" stop-color="#bc5d5d" stop-opacity=".08"/></linearGradient><linearGradient id="lowBand" x1="0" x2="1"><stop stop-color="#4777c8" stop-opacity=".28"/><stop offset="1" stop-color="#4777c8" stop-opacity=".08"/></linearGradient></defs>
+            <rect x="72" y="139" width="600" height="138" fill="#dbe5e8" opacity=".58"/><text x="660" y="213" text-anchor="end" font-weight="700">MAIN CONTROL BAND</text>
+            <path d="M72 64 C210 78 350 86 672 90 L672 112 C350 110 210 111 72 126 Z" fill="url(#highBand)"/><path d="M72 291 C210 305 350 313 672 316 L672 338 C350 336 210 338 72 354 Z" fill="url(#lowBand)"/>
+            <line class="grid" x1="72" x2="672" y1="101" y2="101"/><line class="grid" x1="72" x2="672" y1="324" y2="324"/><text x="678" y="96" font-weight="700">Excessive</text><text x="678" y="319" font-weight="700">Too low</text>
+            <line class="axis" x1="72" x2="672" y1="372" y2="372"/><line class="axis" x1="72" x2="72" y1="32" y2="372"/><line class="intervention" x1="359" x2="359" y1="32" y2="372"/><text x="367" y="48" font-weight="700">Intervention</text>
+            <path class="series" pathLength="1" stroke="#4777c8" d="M72 73 C120 61 167 77 215 72 S310 77 338 110 S376 177 409 212 S480 213 531 210 S615 214 672 209"/>
+            <path class="series" pathLength="1" stroke="#bc5d5d" d="M72 219 C105 49 143 62 180 302 S244 52 286 76 S328 286 365 296 S410 143 448 265 S492 170 531 244 S584 183 620 225 S653 202 672 213"/>
+            <path class="series" pathLength="1" stroke="#138a83" d="M72 345 C180 344 260 338 319 288 S353 232 391 197 S472 158 531 152 S620 151 672 151"/>
+            <text x="220" y="405" text-anchor="middle" font-weight="700">DYSFUNCTION</text><text x="516" y="405" text-anchor="middle" font-weight="700">IMPROVEMENT</text><text x="372" y="426" text-anchor="middle">Days</text><text transform="translate(20 205) rotate(-90)" text-anchor="middle">Time spent in location</text>
+          </svg>
+        </figure>
+        <div class="slide-notes" data-time="1:15–1:50"><p>This graph illustrates the research idea and comes from the supplied activity-trend concept. It establishes neither diagnosis-specific patterns nor treatment effects. Today, the weekly researcher compares spatial metrics and clinician notes, but does not invent numeric thresholds. The shaded bands are illustrative and are not statistical confidence intervals.</p></div>
+      </section>
+<section class="slide tested"><h2>Where the safety gates sit</h2><div class="test-body"><table class="test-table"><thead><tr><th>Application code</th><th>CodeBuddy</th><th>Staff review</th></tr></thead><tbody><tr><td>Permitted tools and scope</td><td>Interpret the question</td><td>Check the chosen patient, event and dates</td></tr><tr><td>Source IDs and calculations</td><td>Select and explain evidence</td><td>Read source wording and limitations</td></tr><tr><td>Withhold invalid output</td><td>Suggest coverage or calibration reviews</td><td>Approve policies; retain clinical decisions</td></tr></tbody></table></div><p class="test-footer">Source grounding reduces fabrication risk. It does not make source data or AI interpretation infallible.</p><div class="slide-notes"><p>Source grounding reduces fabrication risk. It does not make source data or AI interpretation infallible.</p></div></section>
+<section class="slide tested"><h2>An answer that can be audited</h2><div class="test-body"><p class="test-lead">Each answer has a SQLite audit ID.</p><p>The record preserves the question, evidence snapshot, proposed output, accepted facts, rejected claims and final response.</p><p>An audit-write failure prevents delivery of an unaudited answer.</p></div><p class="test-footer">The local log is reviewable, not tamper-proof. Do not publish runtime audits or use real patient data in this demo.</p><div class="slide-notes"><p>The local log is reviewable, not tamper-proof. Do not publish runtime audits or use real patient data in this demo.</p></div></section>
+<section class="slide tested"><h2>Evaluated, inspected and refined</h2><div class="test-body"><table class="test-table"><thead><tr><th>Evidence</th><th>What it shows</th></tr></thead><tbody><tr><td>70 application tests</td><td>Source/scope checks, tool contracts, calculations, audit and review behaviour</td></tr><tr><td>35 RFID software tests</td><td>Protocol, presence and local dashboard behaviour</td></tr><tr><td>18 live scenarios</td><td>Latest cases pass across initial and targeted retests</td></tr><tr><td>Failures kept visible</td><td>Four initial structured-output failures; later semantic and transport issues corrected</td></tr></tbody></table></div><p class="test-footer">Latest outcomes combine several runs. No guarantee of repeatability, clinical accuracy or new physical tag detection.</p><div class="slide-notes"><p>The Codex judge caught intent-versus-thoughts wording and aligned-versus-unclear inconsistency. Automatic pass criteria are not sufficient on their own. All failed attempts remain available.</p></div></section>
+<section class="slide tested"><h2>The stack and the demo kit</h2><div class="test-body"><table class="test-table"><thead><tr><th>Layer</th><th>Implementation / materials</th></tr></thead><tbody><tr><td>Capture</td><td>YRM100 UHF reader, compatible tags, USB serial, Python</td></tr><tr><td>Storage and gates</td><td>SQLite, Node.js, validated JSON plans and evidence snapshots</td></tr><tr><td>Experience</td><td>React, Vite, Recharts and source-linked clinical documentation</td></tr><tr><td>Intelligence</td><td>CodeBuddy CLI: on-demand questions, nightly learning, weekly review</td></tr></tbody></table></div><p class="test-footer">Hardware is optional for the software demo. Actual tag mappings stay in ignored local configuration.</p><div class="slide-notes"><p>Hardware is optional for the software demo. Actual tag mappings stay in ignored local configuration.</p></div></section>
+<section class="slide tested"><h2>Reproduce the demonstration</h2><div class="test-body"><p class="test-lead">github.com/chankuanghong/psych-map</p><p>Clone, install dependencies and generate the fictional stores with <code>npm run demo:setup</code>.</p><p>Ask the overnight question. Inspect its evidence. Run the question scan. Review a suggestion without changing thresholds.</p></div><p class="test-footer">Repository includes setup, materials, source, tests, actual answers and three full execution examples.</p><div class="slide-notes"><p>Use trusted local networking. AI calls send selected synthetic evidence to CodeBuddy and consume tokens. The role selector is not production authentication. Do not claim deployment readiness.</p></div></section><div class="progress"><div class="progress-fill"></div></div>
+    </main>
+  </div>
+  <div class="controls"><button class="control" id="previous" type="button" aria-label="Previous slide">←</button><span class="count"><span id="current">1</span> / <span id="total">9</span></span><button class="control" id="next" type="button" aria-label="Next slide">→</button></div>
+  <div class="hint">← → navigate · N notes · F fullscreen</div>
+  <aside class="notes" aria-live="polite"><span class="time"></span><h3>Speaker notes</h3><div class="notes-copy"></div></aside>
+  <script>
+    function fitDeck(){document.documentElement.style.setProperty('--deck-scale',Math.max(.1,Math.min((window.innerWidth-24)/1280,(window.innerHeight-96)/720)));}
+    window.addEventListener('resize',fitDeck); fitDeck();
+    const slides=[...document.querySelectorAll('.slide')]; const current=document.getElementById('current'); const total=document.getElementById('total'); const progress=document.querySelector('.progress-fill'); const notes=document.querySelector('.notes'); const notesTime=notes.querySelector('.time'); const notesCopy=notes.querySelector('.notes-copy'); let index=Math.max(0,Math.min(slides.length-1,Number(location.hash.slice(1))-1||0)); total.textContent=slides.length;
+    function render(){ slides.forEach((slide,i)=>{slide.classList.toggle('active',i===index);slide.classList.toggle('previous',i<index);slide.setAttribute('aria-hidden',i===index?'false':'true')}); current.textContent=index+1; progress.style.width=`${(index+1)/slides.length*100}%`; history.replaceState(null,'',`#${index+1}`); const source=slides[index].querySelector('.slide-notes'); notesTime.textContent=source?.dataset.time||''; notesCopy.innerHTML=source?.innerHTML||''; }
+    function move(delta){ index=Math.max(0,Math.min(slides.length-1,index+delta)); render(); }
+    document.getElementById('previous').addEventListener('click',()=>move(-1)); document.getElementById('next').addEventListener('click',()=>move(1));
+    window.addEventListener('hashchange',()=>{ const requested=Number(location.hash.slice(1))-1; if(Number.isInteger(requested)){index=Math.max(0,Math.min(slides.length-1,requested));render();} });
+    document.addEventListener('keydown',event=>{if(['ArrowRight','PageDown',' '].includes(event.key)){event.preventDefault();move(1)}if(['ArrowLeft','PageUp'].includes(event.key)){event.preventDefault();move(-1)}if(event.key.toLowerCase()==='n')notes.classList.toggle('open');if(event.key.toLowerCase()==='f')document.documentElement.requestFullscreen?.();if(event.key==='Escape')notes.classList.remove('open');if(event.key==='Home'){index=0;render()}if(event.key==='End'){index=slides.length-1;render()}}); render();
+  </script>
+</body>
+</html>

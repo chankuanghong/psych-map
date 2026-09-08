@@ -1,12 +1,13 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  AreaChart, Area, CartesianGrid, ReferenceArea, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  AreaChart, Area, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from 'recharts'
 import { CalendarDays, ChevronLeft, ChevronRight, FileText, Minus, Moon, Plus, RotateCcw } from 'lucide-react'
 import { ARCHITECTURAL_AREAS, ENTRANCE, WARD_BOUNDARIES, ZONES } from '../data/zones.js'
 import { ADMISSION_DATE, getEventsForPatient } from '../data/syntheticEvents.js'
 import { computeDailyMetrics, getDayNumber, getHomeCubicle } from '../data/metricsEngine.js'
 import { formatDuration } from '../utils/duration.js'
+import { applyLayerVisibility, MINUTES_PER_DAY, SPATIAL_LAYER_SERIES, to24HourLayerRow } from '../data/spatialCoverage.js'
 
 const SPACE_SERIES = [
   { key: 'homeCubicleMins', label: 'Assigned cubicle', color: '#64748b', defaultOn: true },
@@ -32,7 +33,6 @@ const EVENT_STYLE = {
 
 const getEventCategory = event => event.eventType === 'dav_episode' ? 'DAV' : event.eventType === 'medication_change' ? 'Medication' : event.discipline
 const getEventStyle = event => EVENT_STYLE[getEventCategory(event)] || EVENT_STYLE.MDT
-const getEventKey = event => `${event.timestamp}-${event.title}`
 
 const heatFill = level => [
   '#f8fafc', '#e0f2fe', '#bae6fd', '#7dd3fc', '#38bdf8', '#0ea5e9', '#0284c7', '#0369a1',
@@ -72,7 +72,30 @@ function SpaceTooltip({ active, payload, label }) {
   )
 }
 
-export default function IntegratedPatientView({ patientId, range, onRangeChange, selectedDays, onDayToggle }) {
+function PatientLayeredTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null
+  const row = payload[0]?.payload
+  return (
+    <div className="max-w-72 rounded-lg border border-slate-200 bg-white p-3 text-xs shadow-xl">
+      <div className="mb-2 flex items-center justify-between gap-4">
+        <p className="font-semibold text-slate-800">Day {label}</p>
+        <span className="font-mono font-semibold text-slate-600">{row?.coveragePct ?? 0}% recorded</span>
+      </div>
+      {payload.filter(item => item.value > 0).map(item => (
+        <div key={item.dataKey} className="flex min-w-52 items-center justify-between gap-4 py-0.5">
+          <span className="flex min-w-0 items-center gap-1.5 text-slate-600">
+            <span className="h-2 w-2 shrink-0 rounded-sm" style={{ background: item.dataKey === 'hiddenLayerMins' ? '#94a3b8' : item.color }} />
+            {item.name}
+          </span>
+          <span className="shrink-0 font-mono font-semibold text-slate-800">{formatDuration(item.value)} · {Math.round(item.value / MINUTES_PER_DAY * 100)}%</span>
+        </div>
+      ))}
+      <p className="mt-2 border-t border-slate-100 pt-2 text-[10px] leading-relaxed text-slate-500">All layers total 24 hours. Unrecorded or hidden time is never reassigned to another location.</p>
+    </div>
+  )
+}
+
+export default function IntegratedPatientView({ patientId, range, onRangeChange, selectedDays, onDayToggle, agentAction }) {
   const daily = computeDailyMetrics(patientId)
   const dayCount = daily.length
   const { locationEvents, clinicalEvents } = getEventsForPatient(patientId)
@@ -82,13 +105,16 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
   const [hoveredZone, setHoveredZone] = useState(null)
   const [hoveredEvent, setHoveredEvent] = useState(null)
   const [selectedEvent, setSelectedEvent] = useState(null)
-  const [pinnedEvents, setPinnedEvents] = useState([])
   const [mapZoom, setMapZoom] = useState(0.75)
   const pinchRef = useRef(null)
   const rangeTrackRef = useRef(null)
   const rangeInteractionRef = useRef(null)
   const [visibleSpaces, setVisibleSpaces] = useState(
     Object.fromEntries(SPACE_SERIES.map(item => [item.key, item.defaultOn]))
+  )
+  const [chartMode, setChartMode] = useState('trend')
+  const [visibleLayers, setVisibleLayers] = useState(
+    Object.fromEntries(SPATIAL_LAYER_SERIES.map(item => [item.key, true]))
   )
   const [eventFilters, setEventFilters] = useState(
     Object.fromEntries(Object.keys(EVENT_STYLE).map(key => [key, true]))
@@ -102,8 +128,22 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
 
   useEffect(() => {
     setSelectedEvent(null)
-    setPinnedEvents([])
   }, [patientId])
+
+  useEffect(() => {
+    if (!agentAction) return
+    if (agentAction.type === 'toggle_metric') {
+      const chartKey = agentAction.metricId === 'assignedCubicleMins' ? 'homeCubicleMins' : agentAction.metricId === 'overnightRestProxyMins' ? null : agentAction.metricId
+      if (chartKey && SPACE_SERIES.some(space => space.key === chartKey)) {
+        setChartMode('trend')
+        setVisibleSpaces(current => ({ ...current, [chartKey]: agentAction.enabled }))
+      }
+    }
+    if (agentAction.type === 'focus_zone') {
+      setHoveredZone(agentAction.zoneId)
+      document.getElementById('ward-map')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [agentAction])
 
   const zoneData = useMemo(() => {
     const totals = {}
@@ -121,16 +161,12 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
 
   const filteredEvents = clinicalEvents.filter(event => eventFilters[getEventCategory(event)] !== false)
   const chartData = daily.filter(row => selectedDaySet.has(row.day))
-  const visiblePinnedEvents = pinnedEvents.filter(event => eventFilters[getEventCategory(event)] !== false)
-  const highlightedEvents = hoveredEvent && !visiblePinnedEvents.some(event => getEventKey(event) === getEventKey(hoveredEvent))
-    ? [...visiblePinnedEvents, hoveredEvent]
-    : visiblePinnedEvents
-  const highlightedEventGroups = Object.values(highlightedEvents.reduce((groups, event) => {
-    const day = getDayNumber(event.timestamp)
-    if (day < range[0] || day > range[1]) return groups
-    groups[day] = [...(groups[day] || []), event]
-    return groups
-  }, {}))
+  const rawLayeredData = useMemo(() => chartData.map(to24HourLayerRow), [chartData])
+  const layeredData = useMemo(() => rawLayeredData.map(row => applyLayerVisibility(row, visibleLayers)), [rawLayeredData, visibleLayers])
+  const averageCoverage = rawLayeredData.length
+    ? Math.round(rawLayeredData.reduce((sum, row) => sum + row.coveragePct, 0) / rawLayeredData.length)
+    : 0
+  const hiddenLayerCount = Object.values(visibleLayers).filter(value => !value).length
   const dayDate = day => daily.find(row => row.day === day)?.date || `Day ${day}`
   const timeGrid = useMemo(() => selectedDays.map(day => {
     const cells = Array.from({ length: 24 }, (_, hour) => {
@@ -159,18 +195,11 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
     return Math.min(dayCount, Math.max(1, Math.round((parsed.getTime() - ADMISSION_DATE.getTime()) / 86400000) + 1))
   }
 
+  const setSingleDay = day => setRange([day, day])
   const focusEvent = event => {
-    const eventKey = getEventKey(event)
-    const isPinned = pinnedEvents.some(item => getEventKey(item) === eventKey)
-    const nextPinnedEvents = isPinned
-      ? pinnedEvents.filter(item => getEventKey(item) !== eventKey)
-      : [...pinnedEvents, event]
-    setPinnedEvents(nextPinnedEvents)
-    setSelectedEvent(current => (
-      isPinned && current && getEventKey(current) === eventKey
-        ? nextPinnedEvents.at(-1) || null
-        : event
-    ))
+    const day = getDayNumber(event.timestamp)
+    setSelectedEvent(event)
+    setSingleDay(day)
   }
 
   const updateStart = value => setRange(([, end]) => [Math.max(1, Math.min(Number(value), end)), end])
@@ -238,7 +267,7 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
             <button type="button" onClick={() => document.getElementById('night-view')?.scrollIntoView({ behavior: 'smooth', block: 'start' })} className="flex items-center gap-2 rounded-md border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700 hover:bg-indigo-100">
               <Moon size={13} /> Night view
             </button>
-            <button type="button" onClick={() => { setRange([1, dayCount]); setSelectedEvent(null); setPinnedEvents([]) }} className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50">
+            <button type="button" onClick={() => { setRange([1, dayCount]); setSelectedEvent(null) }} className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50">
               <RotateCcw size={13} /> Reset {dayCount} days
             </button>
           </div>
@@ -257,12 +286,12 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
-            <label className="w-36 shrink-0 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-center shadow-sm hover:border-brand-300 hover:bg-brand-50/40">
+          <div className="grid min-w-0 grid-cols-2 items-center gap-3 sm:grid-cols-[9rem_minmax(0,1fr)_9rem]">
+            <label className="min-w-0 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-center shadow-sm hover:border-brand-300 hover:bg-brand-50/40">
               <span className="block text-[9px] font-semibold uppercase tracking-wider text-slate-400">From</span>
-              <input aria-label="From date" type="date" min={inputDateForDay(1)} max={inputDateForDay(range[1])} value={inputDateForDay(range[0])} onChange={event => updateStart(dayFromInputDate(event.target.value))} className="mt-0.5 w-full cursor-pointer border-0 bg-transparent p-0 text-center text-xs font-semibold text-slate-700 outline-none" />
+              <input aria-label="From date" type="date" min={inputDateForDay(1)} max={inputDateForDay(range[1])} value={inputDateForDay(range[0])} onChange={event => updateStart(dayFromInputDate(event.target.value))} className="mt-0.5 w-full cursor-pointer border-0 bg-transparent p-0 text-center text-base font-semibold text-slate-700 focus-visible:ring-2 focus-visible:ring-brand-500 sm:text-xs" />
             </label>
-            <div ref={rangeTrackRef} className="relative h-8 flex-1" aria-label={`Selected period Day ${range[0]} to Day ${range[1]}. Drag the highlighted segment to move the period.`}>
+            <div ref={rangeTrackRef} className="relative order-3 col-span-2 h-8 min-w-0 sm:order-none sm:col-span-1" aria-label={`Selected period Day ${range[0]} to Day ${range[1]}. Drag the highlighted segment to move the period.`}>
               <div className="absolute left-0 right-0 top-3.5 h-1.5 rounded-full bg-slate-200" />
               <div
                 className="absolute top-2.5 z-[1] h-3.5 touch-none select-none rounded-full bg-brand-700/90 shadow-sm cursor-grab active:cursor-grabbing"
@@ -286,9 +315,9 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
                 style={{ left: `${((range[1] - 1) / (dayCount - 1)) * 100}%` }} title={`End: Day ${range[1]}`}
               />
             </div>
-            <label className="w-36 shrink-0 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-center shadow-sm hover:border-brand-300 hover:bg-brand-50/40">
+            <label className="min-w-0 cursor-pointer rounded-lg border border-slate-200 bg-white px-3 py-2 text-center shadow-sm hover:border-brand-300 hover:bg-brand-50/40">
               <span className="block text-[9px] font-semibold uppercase tracking-wider text-slate-400">To</span>
-              <input aria-label="To date" type="date" min={inputDateForDay(range[0])} max={inputDateForDay(dayCount)} value={inputDateForDay(range[1])} onChange={event => updateEnd(dayFromInputDate(event.target.value))} className="mt-0.5 w-full cursor-pointer border-0 bg-transparent p-0 text-center text-xs font-semibold text-slate-700 outline-none" />
+              <input aria-label="To date" type="date" min={inputDateForDay(range[0])} max={inputDateForDay(dayCount)} value={inputDateForDay(range[1])} onChange={event => updateEnd(dayFromInputDate(event.target.value))} className="mt-0.5 w-full cursor-pointer border-0 bg-transparent p-0 text-center text-base font-semibold text-slate-700 focus-visible:ring-2 focus-visible:ring-brand-500 sm:text-xs" />
             </label>
           </div>
 
@@ -314,8 +343,8 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
           </div>
         </div>
 
-        <div className="grid gap-0 xl:grid-cols-[minmax(540px,1.15fr)_minmax(560px,1.25fr)]">
-          <div className="relative border-b border-slate-100 bg-slate-50/70 p-4 xl:border-b-0 xl:border-r">
+        <div className="grid grid-cols-[minmax(0,1fr)] gap-0 xl:grid-cols-[minmax(540px,1.15fr)_minmax(560px,1.25fr)]">
+          <div id="ward-map" className="relative scroll-mt-20 border-b border-slate-100 bg-slate-50/70 p-4 xl:border-b-0 xl:border-r">
             <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
               <div>
                 <p className="panel-title">Ward blueprint · selected period</p>
@@ -399,7 +428,7 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
                       onMouseLeave={() => setHoveredZone(null)}
                       onFocus={() => setHoveredZone(zone.id)}
                       onBlur={() => setHoveredZone(null)}
-                      className="outline-none"
+                      className="focus-visible:opacity-80"
                     >
                       {zone.shape.kind === 'rect'
                         ? <rect x={zone.shape.x} y={zone.shape.y} width={zone.shape.width} height={zone.shape.height} rx={zone.shape.rx || 0} {...common} />
@@ -445,11 +474,19 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
 
           <div className="min-w-0 p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="panel-title">Daily space use</p>
-                <p className="mt-1 text-xs text-slate-400">Showing {selectedDays.length} selected day{selectedDays.length === 1 ? '' : 's'} within Days {range[0]}–{range[1]}. Shower and toilet presence are separate routine proxies; self-care completion is not inferred.</p>
+              <div className="min-w-0">
+                <p className="panel-title">{chartMode === 'trend' ? 'Mode 1 · Daily space-use trends' : 'Mode 2 · Layered 24-hour profile'}</p>
+                <p className="mt-1 text-xs text-slate-400">{chartMode === 'trend'
+                  ? `Showing ${selectedDays.length} selected day${selectedDays.length === 1 ? '' : 's'} within Days ${range[0]}–${range[1]}. Shower and toilet presence are separate routine proxies; self-care completion is not inferred.`
+                  : `Every selected day totals 24 hours. Coloured layers are recorded locations; grey is unrecorded time. Average coverage ${averageCoverage}%.`}</p>
               </div>
-              <div className="flex flex-wrap justify-end gap-1.5">
+              <div className="flex rounded-lg border border-slate-300 bg-slate-100 p-1" role="group" aria-label="Patient MAP chart display mode">
+                <button type="button" onClick={() => setChartMode('trend')} aria-pressed={chartMode === 'trend'} className={`min-h-11 rounded-md px-3 py-1.5 text-xs font-semibold transition sm:min-h-9 ${chartMode === 'trend' ? 'bg-white text-brand-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Mode 1 · Lines</button>
+                <button type="button" onClick={() => setChartMode('layers')} aria-pressed={chartMode === 'layers'} className={`min-h-11 rounded-md px-3 py-1.5 text-xs font-semibold transition sm:min-h-9 ${chartMode === 'layers' ? 'bg-white text-brand-800 shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}>Mode 2 · Layers</button>
+              </div>
+            </div>
+
+            {chartMode === 'trend' ? <div className="mt-3 flex flex-wrap justify-end gap-1.5">
                 <button type="button" onClick={() => setVisibleSpaces(Object.fromEntries(SPACE_SERIES.map(space => [space.key, false])))} className="rounded-full border border-slate-300 bg-white px-2 py-1 text-[10px] font-medium text-slate-500 hover:bg-slate-50">Unselect all</button>
                 {SPACE_SERIES.map(space => (
                   <button
@@ -462,12 +499,18 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
                     <span className="h-2 w-2 rounded-full" style={{ background: space.color }} /> {space.label}
                   </button>
                 ))}
-              </div>
-            </div>
+              </div> : <div className="mt-3 flex flex-wrap items-center gap-1.5" aria-label="Patient MAP 24-hour location layer controls">
+                <button type="button" onClick={() => setVisibleLayers(Object.fromEntries(SPATIAL_LAYER_SERIES.map(item => [item.key, true])))} disabled={!hiddenLayerCount} className="rounded-full border border-slate-300 bg-white px-2 py-1 text-[10px] font-medium text-slate-600 disabled:cursor-default disabled:opacity-40">Show all</button>
+                {SPATIAL_LAYER_SERIES.map(item => (
+                  <button key={item.key} type="button" onClick={() => setVisibleLayers(current => ({ ...current, [item.key]: !current[item.key] }))} aria-pressed={visibleLayers[item.key]} className={`flex items-center gap-1 rounded-full border px-2 py-1 text-[10px] font-medium ${visibleLayers[item.key] ? 'opacity-100' : 'border-slate-300 bg-slate-100 text-slate-400 opacity-65'}`} style={visibleLayers[item.key] ? { color: item.key === 'unrecordedMins' ? '#475569' : item.color, borderColor: `${item.color}88`, background: `${item.color}18` } : undefined}>
+                    <span className="h-2 w-2 rounded-sm" style={{ background: item.color }} />{item.label}
+                  </button>
+                ))}
+              </div>}
 
             <div className="mt-3 h-[335px]">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={chartData} margin={{ top: 12, right: 12, bottom: 0, left: 0 }}>
+                {chartMode === 'trend' ? <AreaChart data={chartData} margin={{ top: 12, right: 12, bottom: 0, left: 0 }}>
                   <defs>
                     {SPACE_SERIES.map(space => (
                       <linearGradient key={space.key} id={`fill-${space.key}`} x1="0" y1="0" x2="0" y2="1">
@@ -480,37 +523,6 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
                   <XAxis dataKey="day" type="number" domain={[Math.max(0.5, range[0] - 0.45), Math.min(dayCount + 0.5, range[1] + 0.45)]} ticks={chartTicks} tick={{ fontSize: 10, fill: '#64748b' }} tickLine={false} axisLine={{ stroke: '#cbd5e1' }} allowDataOverflow />
                   <YAxis tickFormatter={formatDuration} tick={{ fontSize: 10, fill: '#94a3b8' }} tickLine={false} axisLine={false} width={48} />
                   <Tooltip content={<SpaceTooltip />} />
-                  {highlightedEventGroups.map(events => {
-                    const day = getDayNumber(events[0].timestamp)
-                    const markerEvent = hoveredEvent && events.some(event => getEventKey(event) === getEventKey(hoveredEvent)) ? hoveredEvent : events.at(-1)
-                    const categories = [...new Set(events.map(getEventCategory))]
-                    return (
-                    <Fragment key={`event-marker-${day}`}>
-                      <ReferenceArea
-                        x1={day - 0.14}
-                        x2={day + 0.14}
-                        fill={getEventStyle(markerEvent).color}
-                        fillOpacity={0.045}
-                        ifOverflow="hidden"
-                      />
-                      <ReferenceLine
-                        x={day}
-                        stroke={getEventStyle(markerEvent).color}
-                        strokeWidth={1.25}
-                        strokeOpacity={0.7}
-                        strokeDasharray="4 4"
-                        ifOverflow="hidden"
-                        label={{
-                          value: `Day ${day} · ${categories.join(' + ')}`,
-                          position: 'insideTopRight',
-                          fill: getEventStyle(markerEvent).color,
-                          fontSize: 9,
-                          fontWeight: 600,
-                        }}
-                      />
-                    </Fragment>
-                    )
-                  })}
                   {SPACE_SERIES.filter(space => visibleSpaces[space.key]).map(space => (
                     <Area
                       key={space.key}
@@ -527,15 +539,35 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
                       isAnimationActive={false}
                     />
                   ))}
-                </AreaChart>
+                </AreaChart> : <AreaChart data={layeredData} margin={{ top: 12, right: 12, bottom: 0, left: 0 }} stackOffset="none">
+                  <defs>
+                    <pattern id="patient-map-hidden-layer-pattern" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+                      <rect width="8" height="8" fill="#f8fafc" />
+                      <line x1="0" y1="0" x2="0" y2="8" stroke="#94a3b8" strokeWidth="3" />
+                    </pattern>
+                  </defs>
+                  <CartesianGrid stroke="#e2e8f0" strokeDasharray="3 4" vertical={false} />
+                  <XAxis dataKey="day" type="number" domain={[Math.max(0.5, range[0] - 0.45), Math.min(dayCount + 0.5, range[1] + 0.45)]} ticks={chartTicks} tick={{ fontSize: 10, fill: '#64748b' }} tickLine={false} axisLine={{ stroke: '#cbd5e1' }} allowDataOverflow />
+                  <YAxis domain={[0, MINUTES_PER_DAY]} ticks={[0, 360, 720, 1080, 1440]} tickFormatter={value => `${Math.round(value / MINUTES_PER_DAY * 100)}%`} tick={{ fontSize: 10, fill: '#64748b' }} tickLine={false} axisLine={false} width={42} />
+                  <Tooltip content={<PatientLayeredTooltip />} />
+                  {SPATIAL_LAYER_SERIES.map(item => (
+                    <Area key={item.key} type="linear" dataKey={item.key} name={item.label} stackId="24h" stroke={item.color} strokeWidth={item.key === 'unrecordedMins' ? 1 : 1.25} fill={item.color} fillOpacity={item.key === 'unrecordedMins' ? 0.75 : 0.9} isAnimationActive={false} />
+                  ))}
+                  <Area type="linear" dataKey="hiddenLayerMins" name="Hidden layers" stackId="24h" stroke="#64748b" strokeWidth={1} fill="url(#patient-map-hidden-layer-pattern)" isAnimationActive={false} />
+                </AreaChart>}
               </ResponsiveContainer>
             </div>
+
+            {chartMode === 'layers' && <div className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2">
+              <p className="text-xs text-slate-600"><strong>Fixed denominator:</strong> 1,440 minutes per day. Removed layers move into the striped band.</p>
+              <span className="rounded-md border border-slate-300 bg-white px-2 py-1 font-mono text-[10px] font-semibold text-slate-600">{averageCoverage}% average RFID coverage</span>
+            </div>}
 
             <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-3">
               <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                 <div>
                   <p className="text-xs font-semibold text-slate-700">Clinical event nodes</p>
-                  <p className="text-[10px] text-slate-400">Hover to locate the event on the graph. Click to open documentation. DAV means a nurse-documented disturbed, aggressive or violent episode; it is never inferred from location data.</p>
+                  <p className="text-[10px] text-slate-400">Hover for purpose. Click to open documentation. DAV means a nurse-documented disturbed, aggressive or violent episode; it is never inferred from location data.</p>
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {Object.entries(EVENT_STYLE).map(([discipline, config]) => (
@@ -558,7 +590,7 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
                   const sameDayOffset = filteredEvents.slice(0, index).filter(item => getDayNumber(item.timestamp) === day).length
                   return (
                     <button
-                      key={getEventKey(event)}
+                      key={`${event.timestamp}-${event.title}`}
                       type="button"
                       onMouseEnter={() => setHoveredEvent(event)}
                       onMouseLeave={() => setHoveredEvent(null)}
@@ -566,9 +598,8 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
                       onBlur={() => setHoveredEvent(null)}
                       onClick={() => focusEvent(event)}
                       aria-label={`${getEventCategory(event)}${getEventCategory(event) === 'DAV' ? ' nursing documentation' : ''}, day ${day}: ${event.title}`}
-                      aria-pressed={pinnedEvents.some(item => getEventKey(item) === getEventKey(event))}
-                      className="absolute z-10 h-3.5 w-3.5 -translate-x-1/2 rounded-full border-2 border-white shadow-sm outline-none ring-offset-1 hover:scale-125 focus:ring-2 aria-pressed:ring-2"
-                      style={{ left: `${((day - 0.5) / dayCount) * 100}%`, top: `${14 - sameDayOffset * 8}px`, background: config.color, '--tw-ring-color': config.color }}
+                      className="absolute z-10 h-3.5 w-3.5 -translate-x-1/2 rounded-full border-2 border-white shadow-sm ring-offset-1 hover:scale-125 focus-visible:ring-2 focus-visible:ring-brand-500"
+                      style={{ left: `${((day - 0.5) / dayCount) * 100}%`, top: `${14 - sameDayOffset * 8}px`, background: config.color }}
                     ><title>{event.title}: {event.description}</title></button>
                   )
                 })}
@@ -618,7 +649,7 @@ export default function IntegratedPatientView({ patientId, range, onRangeChange,
           </div>
 
           <div className="overflow-x-auto">
-          <div className="min-w-[1180px]">
+          <div style={{ minWidth: 1180 }}>
             <p className="mb-2 text-xs font-semibold text-slate-700">24-hour space-use grid</p>
             <div className="grid grid-cols-[80px_repeat(24,minmax(40px,1fr))] gap-1">
               <div />

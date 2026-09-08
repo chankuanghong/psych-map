@@ -1,23 +1,16 @@
 import { useState } from 'react'
-import { Activity, ChevronDown, ChevronRight, ChevronUp, ChevronsUpDown, Clock, FileText, Filter, Map, Sparkles, TrendingDown, TrendingUp, Users, X } from 'lucide-react'
-import { WARD_PARTICIPATION_SUMMARIES } from '../data/wardCensus.js'
-import { computeDailyMetrics } from '../data/metricsEngine.js'
-import { getDailyVitals } from '../data/syntheticVitals.js'
-import { getMocaForPatient } from '../data/syntheticEpicData.js'
-import { getClinicalDocumentsForPatient, getVisitorFormsForPatient } from '../data/syntheticDocumentation.js'
+import { Activity, ChevronDown, ChevronRight, ChevronUp, ChevronsUpDown, FileText, Filter, Map, Sparkles, TrendingUp, Users, X } from 'lucide-react'
+import { computeDailyMetrics, getClinicalDocumentsForPatient, getDailyVitals, getMocaForPatient, getVisitorFormsForPatient, getWardRegister } from '../data/runtimeData.js'
 import ClinicalDocumentCard from './ClinicalDocumentCard.jsx'
 
 const SIGNALS = {
   priority: { label: 'Priority review', dot: 'bg-rose-500', badge: 'border-rose-200 bg-rose-50 text-rose-800' },
-  review: { label: 'Review', dot: 'bg-amber-500', badge: 'border-amber-200 bg-amber-50 text-amber-800' },
+  review: { label: 'Review', dot: 'bg-orange-500', badge: 'border-orange-200 bg-orange-50 text-orange-800' },
   clear: { label: 'No threshold crossed', dot: 'bg-emerald-500', badge: 'border-emerald-200 bg-emerald-50 text-emerald-800' },
   insufficient: { label: 'Insufficient data', dot: 'bg-slate-400', badge: 'border-slate-200 bg-slate-50 text-slate-700' },
 }
-
 const getWardSignal = row => {
-  if (row.id === 'PT-001') return { level: 'review', detail: 'Activation ↑; peer engagement remains low' }
-  if (row.id === 'PT-002') return { level: 'review', detail: 'Morning routine pattern persists' }
-  if (row.id === 'PT-003') return { level: 'review', detail: 'Rest and roaming require context' }
+  if (SIGNALS[row.displayLevel]) return { level: row.displayLevel, detail: row.reviewReason }
   if (row.status === 'declining') return { level: 'priority', detail: row.reviewReason }
   if (row.status === 'review') return { level: 'review', detail: row.reviewReason }
   if (row.status === 'insufficient') return { level: 'insufficient', detail: row.reviewReason }
@@ -39,13 +32,12 @@ function SortableHeader({ column, label, align = 'left', sort, onSort }) {
 }
 
 function getTrajectory(patient) {
-  if (patient.id === 'PT-002') {
-    return { label: 'Routine concern', tone: 'amber', Icon: Clock, headline: 'Expected progress over a longer admission', summary: 'The 90-day view should make gradual routine change visible without treating shower-area presence as proof of a particular behaviour.', progress: ['Reduce prolonged morning shower-area presence over time.', 'Transition into breakfast and the morning routine earlier.', 'Participate more consistently in ward activities.', 'Review distress and rituals clinically; location alone cannot explain them.'], caveat: 'These are demonstration expectations for discussion, not treatment targets or validated outcomes.' }
+  return {
+    label: patient.personaFocus, tone: 'green', Icon: TrendingUp,
+    headline: 'Longitudinal pattern for multidisciplinary review', summary: patient.broadContext,
+    progress: ['Review change across the full observation period.', 'Cross-reference spatial patterns with direct observations and dated records.', 'Discuss the patient’s own account and functional priorities.', 'Treat location and interaction measures as behavioural proxies only.'],
+    caveat: 'These are demonstration signals for discussion, not treatment targets or validated clinical outcomes.',
   }
-  if (patient.id === 'PT-003') {
-    return { label: 'Improving after escalation', tone: 'green', Icon: TrendingDown, headline: 'Expected settling after an activated period', summary: 'The trajectory shows increased roaming and reduced overnight rest around a nurse-documented DAV episode, followed by a more settled pattern after clinical review.', progress: ['Reduce roaming through neighbouring cubicles and shared spaces after the peak.', 'Increase overnight presence in the assigned cubicle as a rest proxy.', 'Show fewer rapid transitions between ward spaces.', 'Review whether further DAV episodes are documented, alongside the patient’s account and direct observation.'], caveat: 'The DAV episode comes from nursing documentation, not location inference. Diagnosis does not explain or predict violence, and the timing does not establish medication effect.' }
-  }
-  return { label: 'Improving participation', tone: 'green', Icon: TrendingUp, headline: 'Expected broader participation', summary: 'The trajectory should make a gradual move beyond the assigned cubicle visible while keeping social participation distinct from general activation.', progress: ['Spend progressively more time outside assigned Cubicle #1.', 'Attend the Dining Area and Activity Room more consistently.', 'Sustain participation across the later admission days.', 'Continue reviewing limited social engagement separately from activation.'], caveat: 'These are behavioural proxies and demonstration expectations, not a validated recovery outcome.' }
 }
 
 const TONE = {
@@ -72,13 +64,13 @@ function PatientPopup({ patient, onClose, onOpen, onOpenInsights }) {
     { id: 'visitors', label: 'Visitors', Icon: Users, count: visitors.length },
   ]
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={`${patient.displayName} overview`}>
-      <div className="flex max-h-[92vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl">
-        <div className="flex items-start justify-between gap-4 border-b border-slate-100 p-5"><div><p className="text-[10px] font-semibold uppercase tracking-widest text-brand-600">Detailed demonstration patient</p><h2 className="mt-1 text-xl font-semibold text-slate-900">{patient.displayName}</h2><p className="mt-1 text-xs text-slate-500">{patient.age} years · {patient.sex} · {patient.primaryDiagnosis} · {patient.assignedCubicle.replace('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase())} · Day {patient.lengthOfStay} of admission</p></div><button type="button" onClick={onClose} aria-label="Close patient overview" className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><X size={18} /></button></div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-2 backdrop-blur-sm sm:p-4" role="dialog" aria-modal="true" aria-label={`${patient.displayName} overview`}>
+      <div className="flex max-h-[96vh] w-full max-w-5xl flex-col overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl sm:max-h-[92vh]">
+        <div className="flex min-w-0 items-start justify-between gap-4 border-b border-slate-100 p-4 sm:p-5"><div className="min-w-0"><p className="text-[10px] font-semibold uppercase tracking-widest text-brand-600">Detailed demonstration patient</p><h2 className="mt-1 text-xl font-semibold text-slate-900">{patient.displayName}</h2><p className="mt-1 break-words text-xs text-slate-500">{patient.age} years · {patient.sex} · {patient.primaryDiagnosis} · {patient.assignedCubicle.replace('_', ' ').replace(/\b\w/g, letter => letter.toUpperCase())} · Day {patient.lengthOfStay} of admission</p></div><button type="button" onClick={onClose} aria-label="Close patient overview" className="min-h-11 shrink-0 rounded p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700"><X size={18} /></button></div>
         <div className="flex gap-1 overflow-x-auto border-b border-slate-200 bg-slate-50 px-4 pt-2" role="tablist" aria-label="Patient synthetic record">
           {tabs.map(tab => <button key={tab.id} type="button" role="tab" aria-selected={activeTab === tab.id} onClick={() => setActiveTab(tab.id)} className={`flex shrink-0 items-center gap-2 rounded-t-lg border-b-2 px-3 py-2.5 text-sm font-medium ${activeTab === tab.id ? 'border-brand-700 bg-white text-brand-800' : 'border-transparent text-slate-500 hover:bg-white hover:text-slate-800'}`}><tab.Icon size={15} />{tab.label}{tab.count !== null && <span className="rounded-full bg-slate-200 px-1.5 py-0.5 text-xs text-slate-600">{tab.count}</span>}</button>)}
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto p-5">
+        <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-5">
           {activeTab === 'overview' && <div className="grid gap-4 lg:grid-cols-[1fr_0.9fr]">
             <div className={`rounded-lg border p-4 ${TONE[trajectory.tone]}`}><div className="flex items-center gap-2 text-xs font-semibold"><Icon size={14} />{trajectory.label}</div><h3 className="mt-2 font-semibold">{trajectory.headline}</h3><p className="mt-1 text-sm leading-relaxed text-slate-600">{trajectory.summary}</p></div>
             <div className="rounded-lg border border-slate-200 p-4"><div className="mb-2 flex items-center gap-2"><Sparkles size={13} className="text-brand-600" /><p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Expected progress</p></div><ul className="space-y-2">{trajectory.progress.map(item => <li key={item} className="flex gap-2 text-sm text-slate-600"><span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand-500" />{item}</li>)}</ul><p className="mt-3 text-xs leading-relaxed text-slate-400">{trajectory.caveat}</p></div>
@@ -112,7 +104,8 @@ export default function PatientSelector({ patients, onSelect, onOpenInsights }) 
     if (sort.key === 'admission') return row.admissionDays
     return row.dataCompleteness
   }
-  const rows = WARD_PARTICIPATION_SUMMARIES
+  const wardRegister = getWardRegister()
+  const rows = wardRegister
     .map(row => ({ ...row, signal: getWardSignal(row) }))
     .filter(row => signalFilter === 'all' || row.signal.level === signalFilter)
     .sort((a, b) => {
@@ -121,13 +114,13 @@ export default function PatientSelector({ patients, onSelect, onOpenInsights }) 
       const result = typeof first === 'string' ? first.localeCompare(second, undefined, { numeric: true }) : first - second
       return sort.direction === 'asc' ? result : -result
     })
-  const counts = WARD_PARTICIPATION_SUMMARIES.reduce((result, row) => {
+  const counts = wardRegister.reduce((result, row) => {
     result[getWardSignal(row).level] += 1
     return result
   }, { priority: 0, review: 0, clear: 0, insufficient: 0 })
 
   return (
-    <div className="mx-auto max-w-screen-xl px-6 py-8">
+    <div className="mx-auto max-w-screen-xl px-3 py-5 sm:px-6 sm:py-8">
       <div className="mb-5"><p className="mb-1 text-xs font-semibold uppercase tracking-widest text-slate-400">Ward 4B — Acute Psychiatric Unit</p><h1 className="text-xl font-bold text-slate-800">Ward behavioural overview</h1><p className="mt-1 text-sm text-slate-500">Prioritise review from observable change, then open the supporting patient evidence.</p></div>
 
       <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">

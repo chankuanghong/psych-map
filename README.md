@@ -1,155 +1,100 @@
 # Psych-MAP
 
-![Psych-MAP logo](public/brand/psych-map-logo.png)
+**A psychiatric ward demo connecting spatial observations, clinical notes and staff questions, with evidence people can inspect.**
 
-**Mapping behavioural change for better psychiatric team decisions.**
+Our hackathon prototype explores how an AI assistant can help a multidisciplinary team understand routines, identify unanswered questions and review whether spatial signals agree with clinician assessments. Every distributed patient case is deliberately fictional.
 
-Psych-MAP is a hackathon prototype for acute psychiatric wards. It turns synthetic ward-location, activity and nurse-documented clinical-event data into an interpretable longitudinal picture, then uses Google Gemini to translate the calculated evidence into concise, profession-aware MDT responses.
+> Research prototype only. No clinical validation, prescribing, autonomous risk assessment or automatic threshold changes. Location does not establish sleep, eating, medication-taking or recovery.
 
-> All people, events and records in this repository are fictional. Psych-MAP is a clinical-support concept, not a diagnostic, prescribing or autonomous risk-assessment system.
+## Three apps
 
-## The problem
+|App|What to demonstrate|
+|---|---|
+|Clinician Psych-MAP (`/`)|Ward overview, patient map, spatial trends, notes and source-linked answers with separately labelled AI interpretation.|
+|Question Intelligence (`/admin`)|Staff-group/topic heat map, filtered question library, profession-policy decisions and recommendation review.|
+|RFID dashboard (port 8765)|Tag detections, selected scanner venue and inferred presence sessions. Explore the UI without hardware.|
 
-Meaningful behavioural change is often distributed across shifts, ward spaces, professions and free-text notes. Gradual improvement or deterioration can be difficult to see during a short ward round.
+## Three CodeBuddy engines
 
-Psych-MAP helps the MDT answer:
+1. **On demand:** interprets questions and proposes JSON plans. Code validates and executes `read_metrics`, `read_events` or `compare_periods`. CodeBuddy synthesises cited results. A further AI review checks the proposed interpretation. Invalid output is withheld. SQLite preserves the answer and its evidence snapshot.
+2. **Nightly/manual:** groups de-identified questions, counts repeated intents and proposes profession coverage topics. Administrators approve policies.
+3. **Weekly/manual:** selects comparison windows and a clinician assessment. Code calculates spatial means. CodeBuddy proposes an alignment judgement. Administrators keep or ignore recommendations. No automatic threshold change or literature retrieval.
 
-- What changed?
-- Where and when did it change?
-- Which clinical events occurred alongside it?
-- What remains uncertain or requires direct clinical review?
+CodeBuddy chooses what to investigate. Code owns retrieval and calculations. People check context and make consequential decisions. Source links establish provenance, not clinical truth.
 
-## Hackathon demonstration
+## Materials
 
-The polished demo uses one simulated ward and three detailed personas:
+For a software-only demo: Node with `node:sqlite` (Node 24 in CI; local evals used 23), npm, Python 3.9+ and the `sqlite3` command. Optional live AI requires the CodeBuddy CLI, authentication and access to `fast-model`. Obtain the CLI from your event/provider's official instructions; `codebuddy --help` should work. Live AI sends selected evidence externally and consumes account tokens.
 
-- **Patient A — schizophrenia:** participation beyond the assigned cubicle improves, while social engagement remains a separate question.
-- **Patient B — OCD:** a 90-day view highlights prolonged morning shower-area presence and its functional impact without inferring ritual content.
-- **Patient C — hypomania:** roaming and overnight rest signals worsen, a nurse-documented DAV episode appears on the clinical timeline, and the pattern later settles alongside medication titration. Temporal association is not presented as causation.
+For RFID: a supported **YRM100 UHF reader**, suitable antenna/power arrangement, USB serial connection, compatible **UHF tags**, and any required USB adapter/manufacturer driver. Phone NFC tags are not interchangeable with UHF tags. Optional: `python3 -m pip install pyserial`.
 
-The ward overview also includes lightweight fictional records to demonstrate ward-management questions without authoring 37 complete histories.
+One reader is associated with one selected venue. This is not calibrated multi-reader positioning. RSSI is not converted to distance. Vendor SDKs/drivers and actual tag identifiers are not distributed.
 
-### Suggested 3–5 minute judge flow
+## Fresh-clone setup
 
-1. Choose a professional lens.
-2. Open Patient C from anywhere on the patient row.
-3. Drag the date-range handles or move the selected window.
-4. Compare the ward heat map, Daily Space Use and Night & 24-hour view.
-5. Click the red DAV clinical-event node to inspect the nursing documentation.
-6. Ask: **“What was documented during the DAV episode?”**
-7. Show that Gemini returns short evidence-grounded bullets with uncertainty and an MDT focus.
-
-## What makes the AI meaningful
-
-Psych-MAP uses a hybrid design:
-
-```text
-Synthetic location, activity and clinical events
-                       ↓
-Deterministic metrics and auditable signal detectors
-                       ↓
-Bounded evidence packet for selected patient and dates
-                       ↓
-Same-origin /api/insight endpoint
-                       ↓
-Google Gemini Developer API
-                       ↓
-Concise, profession-aware MDT response
-```
-
-Deterministic code performs durations, averages, comparisons and threshold detection. Gemini does the work that benefits from language intelligence: selecting relevant supplied evidence, contextualising temporal patterns, expressing uncertainty and translating numerous small signals into readable clinical language.
-
-Gemini is deliberately not asked to perform arithmetic, diagnose, prescribe, determine whether medication worked, or independently classify current risk. If Gemini is unavailable, the interface clearly labels and uses a deterministic fallback so the demo remains usable.
-
-The complete architecture and prompting boundaries are documented in [AI_ARCHITECTURE.md](AI_ARCHITECTURE.md).
-
-## Core features
-
-- Profession-specific lenses for ward management, psychiatry, nursing, occupational therapy, psychology and medical social work
-- Interactive From–To date window with draggable ends, draggable middle and independently toggleable days
-- Ward blueprint heat map with 75% default zoom, pan and pinch/scroll zoom
-- Objective daily space-use values with selectable series
-- Separate shower and toilet presence proxies
-- Night and 24-hour space-use views
-- Medication, nursing, OT, psychiatry, MDT and DAV clinical-event nodes
-- Nurse-documented DAV details: observed behaviour, context, response and outcome
-- Deterministic proactive signals with supporting evidence
-- Gemini-powered patient and ward questions in concise bullet format
-- Duration formatting in hours and minutes when values exceed 60 minutes
-- Synthetic long-stay and ward-management demonstrations
-
-## Run locally
-
-### Requirements
-
-- Node.js 18 or later
-- npm
-- Optional: a Gemini API key from Google AI Studio
-
-### Setup
-
-```bash
-git clone https://github.com/chankuanghong/psychmap.git
-cd psychmap
-npm install
-cp .env.example .env
+```sh
+git clone https://github.com/chankuanghong/psych-map.git
+cd psych-map
+npm ci
+npm run demo:setup
 npm run dev -- --host 127.0.0.1 --port 5175 --strictPort
 ```
 
-On Windows PowerShell, use `Copy-Item .env.example .env` instead of `cp`.
+Open `http://127.0.0.1:5175/` and `/admin`. Setup generates synthetic SQLite stores, preserves complete existing fixtures and refuses partial fixture rebuilds. No prebuilt database is needed.
 
-Add your demo key only to the local `.env` file:
+In another terminal, start the RFID page, even without a reader:
 
-```env
-GEMINI_API_KEY=your_key_here
-GEMINI_MODEL=gemini-3.5-flash-lite
+```sh
+python3 rfid-scanner/dashboard.py --allow-missing-reader
 ```
 
-Open `http://127.0.0.1:5175/`. If port 5175 is occupied, stop the existing process or choose another port and open the address printed by Vite.
+Open `http://127.0.0.1:8765/`. It shares `data/psych-map.sqlite` with the application. Ctrl-C stops each service.
 
-The `.env` file is excluded from Git. Never place a real key in source code or screenshots.
+### Enable AI deliberately
 
-### Production check
+Copy `.env.example` to `.env`. Set `CODEBUDDY_ENABLED=true`; enable the per-engine flags for live scans/research. Restart Vite. Leave schedules disabled until you want the in-process nightly/weekly jobs. Manual buttons run the same jobs.
 
-```bash
+On macOS, `Launch Psych-MAP Demo.command` starts all services, **enables CodeBuddy and both schedules**, probes the model and opens the views. It consumes tokens and exposes a LAN demo view: use a trusted network and fictional data only. Keep the launcher terminal open. The CLI must already be authenticated.
+
+### Private tag configuration
+
+Only fictitious EPCs are included. Put actual mappings in ignored `rfid-tags.local.json`:
+
+```json
+{"YOUR_TAG_EPC":{"name":"Demo volunteer","subject_id":"PT-003"}}
+```
+
+```sh
+export RFID_TAG_MAP="$PWD/rfid-tags.local.json"
+python3 rfid-scanner/dashboard.py --allow-missing-reader
+```
+
+Unmapped tags have no patient assignment. Select the scanner venue, present a tag and check a new timestamp. Missing detections are not evidence of a clinical outcome. Check reader status first.
+
+## Evals and actual examples
+
+- [Dataset and methodology](evals/README.md)
+- [Results and refinement history](evals/published/REPORT.md)
+- [Actual answers to all 14 doctor questions](evals/published/DOCTOR_ANSWERS.md)
+- Full execution examples: [Engine 1](evals/published/engine-1.md), [Engine 2](evals/published/engine-2.md), [Engine 3](evals/published/engine-3.md)
+- [SQLite evidence audit](docs/answer-audit.md)
+- [HTML presentation](Psych-MAP_tested-demo-deck.html)
+
+```sh
+npm test
+(cd rfid-scanner && python3 -m unittest discover -s tests)
 npm run build
-npm run preview -- --host 127.0.0.1 --port 4173
+npm run eval:live   # external CodeBuddy calls; synthetic evidence only
 ```
 
-## Safety and responsible design
+Offline tests/CI need no AI credentials. Live evals use isolated question/review databases and retain failures. Traces contain inputs, plans, application tools and outputs, not private reasoning. Passing selected tests is not clinical validation or a guarantee of future answers.
 
-- Synthetic data only; do not submit real patient information to a consumer/developer API key.
-- Location establishes presence, not sleep, showering, consent, friendship or activity quality.
-- DAV episodes come from explicit nursing documentation and are never inferred from movement, diagnosis or proximity.
-- A documented historical episode does not by itself determine current risk.
-- AI outputs distinguish observations, interpretation, uncertainty and the question for human MDT review.
-- Safety/autonomy answers preserve the patient perspective and least-restrictive principle.
-- The system does not recommend medication, restrictions, observation levels, restraint or compulsory treatment.
+## Storage and limitations
 
-## Technology
+- `data/psych-map.sqlite`: application records, mapped presence, planner and answer audits.
+- `simulation/patients/*`: generated fixtures and patient-scoped questions.
+- `simulation/organization/`: question catalogue, review decisions and Markdown mirrors.
 
-- React 18 and Vite
-- Tailwind CSS
-- Recharts
-- Lucide icons
-- Google Gemini Developer API through server-side Vite middleware
+The role dropdown is a professional lens, not authentication. Production identity/access control, consent, retention, EHR integration, clinical validation and journal access remain future work. Do not use real patient data or expose this as a public clinical service.
 
-## Current prototype boundary
-
-RFID/BLE feeds, EHR integration, hospital authentication and real-time infrastructure are simulated future architecture. The hackathon submission prioritises a credible, reviewable end-to-end workflow over unfinished hospital integrations.
-
-## Repository guide
-
-```text
-src/data/metricsEngine.js       deterministic daily measures
-src/data/evidenceEngine.js      reproducible signal detection and evidence packets
-src/data/syntheticEvents.js     fictional movement, activity and clinical events
-src/components/                 ward, patient, timeline and AI interfaces
-server/geminiApi.js             server-side /api/insight middleware
-server/psychMapPrompt.js        Gemini safety and response instructions
-AI_ARCHITECTURE.md              AI structure and product boundaries
-```
-
-## Submission statement
-
-**Psych-MAP helps psychiatric teams see behavioural patterns that are otherwise hidden between shifts, professions, notes and time—while keeping interpretation accountable to clinicians.**
+Only source, fictional fixture generators, reviewed reports and original assets belong in GitHub. Never commit credentials, hardware mappings, SQLite files/sidecars, audit logs, clinical exports or raw recordings. See [publication review](docs/PUBLICATION.md). Review dependency advisories before any deployment.

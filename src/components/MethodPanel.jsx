@@ -14,10 +14,10 @@ export default function MethodPanel() {
         <div className="flex items-start gap-2">
           <AlertCircle size={15} className="text-amber-500 shrink-0 mt-0.5" />
           <div>
-            <div className="font-semibold text-amber-700 text-sm mb-1">Synthetic demonstration data only</div>
+            <div className="font-semibold text-amber-700 text-sm mb-1">De-identified demonstration data</div>
             <p className="text-slate-600 text-sm leading-relaxed">
-              All patient data in this prototype is entirely synthetic. No real patient information,
-              real hospital data, or real RFID signals are used. This is a proof-of-concept prototype.
+              Clinical patterns and question wording are rehashed to remove direct identifiers and reduce sensitivity.
+              Historical patient trajectories are synthetic. A connected local RFID reader can add mapped presence sessions to the same SQLite database for a live integration demonstration. This remains a proof-of-concept prototype.
             </p>
           </div>
         </div>
@@ -45,7 +45,7 @@ export default function MethodPanel() {
         <p className="panel-title mb-4">System architecture</p>
         <div className="flex items-start gap-2 flex-wrap">
           {[
-            { icon: Database, label: 'Simulated data sources', desc: 'Simulated RFID, activity, and clinical events' },
+            { icon: Database, label: 'Bounded data sources', desc: 'Synthetic clinical history plus optional live RFID presence' },
             null,
             { icon: Database, label: 'Event store', desc: 'Location, activity, and clinical documentation events' },
             null,
@@ -53,7 +53,7 @@ export default function MethodPanel() {
             null,
             { icon: Eye,      label: 'Evidence packet', desc: 'Selected dates, detected signals, metrics and clinical events' },
             null,
-            { icon: Cpu,      label: 'Gemini translator', desc: 'Server-side API converts evidence into cautious MDT language' },
+            { icon: Cpu,      label: 'Bounded selector', desc: 'Optional CodeBuddy chooses fact IDs and validated UI actions only' },
             null,
             { icon: Eye,      label: 'MDT interface', desc: 'Heat map, night view, questions and MDT brief' },
           ].map((item, i) =>
@@ -101,18 +101,18 @@ export default function MethodPanel() {
       {/* AI role */}
       <div className="card p-5">
         <p className="panel-title mb-1">Hybrid AI structure</p>
-        <p className="mb-4 text-xs leading-relaxed text-slate-500">Deterministic code detects reproducible patterns first. A same-origin server endpoint sends only the selected synthetic evidence packet and clinician question to Google’s Gemini Developer API. Gemini translates evidence into readable language; it does not calculate or trigger alerts. If Gemini is unavailable, a labelled deterministic fallback remains available.</p>
+        <p className="mb-4 text-xs leading-relaxed text-slate-500">Deterministic code detects patterns, rebuilds a patient-scoped snapshot, verifies fact IDs and renders the final language. Optional CodeBuddy can select only supplied fact IDs and allowlisted view actions. If it is disabled or unavailable, the same server-side deterministic selector remains available after the question is persisted.</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <div className="text-xs font-semibold text-green-700 uppercase tracking-widest mb-2">The agent does</div>
             <ul className="space-y-1.5 text-sm text-slate-600">
               {[
-                'Translate the bounded evidence packet',
-                'Answer a clinician-selected question',
-                'Explain deterministic changes and divergences',
-                'Connect changes with clinical timeline events',
-                'Produce concise MDT-oriented summaries',
-                'State uncertainty and an MDT discussion focus',
+                'Select from bounded evidence fact IDs',
+                'Suggest allowlisted view changes',
+                'Return strict versioned JSON',
+                'Leave values and prose to deterministic code',
+                'Fall back safely when unavailable',
+                'Preserve the evidence-use ledger',
               ].map(item => (
                 <li key={item} className="flex items-start gap-2">
                   <span className="text-green-600 mt-0.5 shrink-0">✓</span>
@@ -146,7 +146,7 @@ export default function MethodPanel() {
       <div className="card p-5">
         <p className="panel-title mb-3">Future architecture</p>
         <p className="text-sm text-slate-500 mb-3">
-          In a production deployment, the synthetic data sources would be replaced with:
+          In a production deployment, the local demonstration sources would be replaced with governed integrations:
         </p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-slate-600">
           {['RFID / proximity tags','BLE ward tracking','EHR / NGEMR integration',

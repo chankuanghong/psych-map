@@ -1,0 +1,110 @@
+<svg class="floorplan" viewBox="0 0 760 840" role="img" aria-labelledby="floor-title floor-desc" xmlns="http://www.w3.org/2000/svg">
+  <title id="floor-title">Psych-MAP Ward 8B floor plan</title>
+  <desc id="floor-desc">The original Psych-MAP 760 by 840 coordinate floor plan. It contains four cubicles around a stepped corridor, a wet area, staff rooms, balcony, activity room, dining area, visitor area, toilet, and the entrance. North points toward the bottom of the plan.</desc>
+  <defs>
+    <pattern id="blueprint-grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M20 0H0V20" fill="none" stroke="#aab8b2" stroke-opacity=".12" stroke-width=".7"/>
+    </pattern>
+    <!-- Vector trace of the user-supplied person.png alpha silhouette. -->
+    <symbol id="person-symbol" viewBox="0 0 5120 5120">
+      <g transform="translate(0 5120) scale(1 -1)">
+        <path d="M2470 5113c-277-46-478-326-430-601 49-287 322-482 606-433 416 72 578 587 279 886-119 119-292 175-455 148zm243-181c211-98 281-356 151-549-42-61-83-94-162-131-48-23-71-27-147-27-82 0-97 3-157 33-136 67-211 187-211 337 0 101 27 175 90 245 115 128 283 164 436 92z"/>
+        <path d="M1947 3909c-104-25-206-111-254-214l-28-60-3-693c-2-490 1-705 9-735 15-56 92-132 151-148 24-6 64-9 91-6l47 6v-753c0-855-4-813 80-897 130-130 348-89 423 81 17 38 21 73 25 228l5 182h67 67l5-182c4-155 8-190 25-228 75-170 293-211 423-81 66 67 80 114 80 278 0 73 1 133 3 133 2 0 35-11 73-24 198-67 334-178 334-271 0-149-301-302-700-357-123-16-497-16-620 0-338 46-615 166-680 293-11 21-20 51-20 67 0 63 86 155 197 211 65 33 80 76 42 125-32 40-71 35-166-24-287-177-296-433-21-616 136-91 357-164 604-201 163-24 541-24 704 0 557 82 874 313 796 579-40 140-210 270-456 349l-85 27-3 541-2 541 45-7c103-14 216 59 243 157 10 34 12 208 10 735l-3 690-31 65c-40 83-102 145-184 184l-65 31-595 2c-327 1-612-3-633-8zm1254-174c24-17 57-50 74-74l30-43 3-684 3-684-25-25c-32-32-70-32-101 0l-25 24v661 661l-25 24c-13 14-36 25-50 25s-37-11-50-25l-25-24V2068c0-1453-1-1504-19-1534-38-63-128-70-175-13l-26 31v851c0 516-4 865-10 886-16 57-27 60-220 60s-204-3-220-60c-6-21-10-370-10-886v-851l-26-31c-47-57-137-50-175 13-18 30-19 81-19 1534v1503l-25 24c-13 14-36 25-50 25s-37-11-50-25l-25-24v-661-661l-25-24c-31-32-69-32-100 0l-25 24v663c0 445 4 676 11 702 14 50 83 123 134 141 33 12 138 14 622 12l581-2 43-30zm-571-2110v-575h-70-70v575 575h70 70v-575z"/>
+      </g>
+    </symbol>
+  </defs>
+
+  <rect class="map-canvas" width="760" height="840" rx="22"/>
+  <rect class="map-grid" x="12" y="12" width="736" height="816" rx="16"/>
+
+  <!-- Original ward footprint from psychmap/src/data/zones.js. -->
+  <g class="ward-footprint" aria-hidden="true">
+    <path d="M244 18H578V350H466V386H440V336H244Z"/>
+    <path d="M244 336H440V590H562V604H440V650H370V730H142V804H26V636H102V580H42V416H244Z"/>
+  </g>
+
+  <!-- Staff and orientation areas are visible but cannot be selected as patient venues. -->
+  <g class="architecture-zone" aria-label="Sink and teeth brushing area">
+    <rect x="440" y="30" width="122" height="34" rx="3"/><text x="501" y="51">SINK / BRUSH TEETH</text>
+  </g>
+  <g class="architecture-zone" aria-label="Nursing Counter, staff only">
+    <rect x="258" y="150" width="112" height="86" rx="4"/><text x="314" y="186">NURSING COUNTER</text><text class="staff-note" x="314" y="200">STAFF ONLY</text>
+  </g>
+  <g class="architecture-zone" aria-label="Medication Counter, staff only">
+    <rect x="208" y="212" width="50" height="48" rx="3"/><text x="233" y="233">MEDS</text><text class="staff-note" x="233" y="246">STAFF</text>
+  </g>
+  <g class="architecture-zone" aria-label="Consult Room, supervised access">
+    <rect x="258" y="336" width="112" height="94" rx="3"/><text x="314" y="377">CONSULT ROOM</text><text class="staff-note" x="314" y="391">SUPERVISED</text>
+  </g>
+
+  <!-- Patient-accessible spaces. Shape geometry is copied exactly from the original plan. -->
+  <g class="map-zone room room--cubicle" data-venue="cubicle_4" data-label="Cubicle 4" data-x="275" data-y="130" data-person-x="345" data-person-y="130" tabindex="0" role="button" aria-label="Open Cubicle 4 room ledger">
+    <rect class="room-shape" x="258" y="54" width="112" height="96" rx="4"/>
+    <text class="room-label" x="314" y="99">CUBICLE 4</text><text class="room-type" x="314" y="113">Sleeping area</text>
+  </g>
+  <g class="map-zone room room--cubicle" data-venue="cubicle_2" data-label="Cubicle 2" data-x="275" data-y="316" data-person-x="345" data-person-y="316" tabindex="0" role="button" aria-label="Open Cubicle 2 room ledger">
+    <rect class="room-shape" x="258" y="236" width="112" height="100" rx="4"/>
+    <text class="room-label" x="314" y="281">CUBICLE 2</text><text class="room-type" x="314" y="295">Sleeping area</text>
+  </g>
+  <g class="map-zone room room--cubicle" data-venue="cubicle_3" data-label="Cubicle 3" data-x="457" data-y="216" data-person-x="545" data-person-y="216" tabindex="0" role="button" aria-label="Open Cubicle 3 room ledger">
+    <rect class="room-shape" x="440" y="142" width="122" height="94" rx="4"/>
+    <text class="room-label" x="501" y="184">CUBICLE 3</text><text class="room-type" x="501" y="198">Sleeping area</text>
+  </g>
+  <g class="map-zone room room--cubicle" data-venue="cubicle_1" data-label="Cubicle 1" data-x="457" data-y="316" data-person-x="545" data-person-y="316" tabindex="0" role="button" aria-label="Open Cubicle 1 room ledger">
+    <rect class="room-shape" x="440" y="236" width="122" height="100" rx="4"/>
+    <text class="room-label" x="501" y="281">CUBICLE 1</text><text class="room-type" x="501" y="295">Sleeping area</text>
+  </g>
+
+  <g class="map-zone room room--wet" data-venue="upper_toilet" data-label="Upper toilet" data-x="461" data-y="82" data-person-x="461" data-person-y="121" tabindex="0" role="button" aria-label="Open Upper toilet room ledger">
+    <rect class="room-shape" x="440" y="64" width="42" height="76" rx="3"/><text class="room-label room-label--tiny" x="461" y="106">WC</text>
+  </g>
+  <g class="map-zone room room--wet" data-venue="shower_1" data-label="Shower 1" data-x="495.5" data-y="82" data-person-x="495.5" data-person-y="121" tabindex="0" role="button" aria-label="Open Shower 1 room ledger">
+    <rect class="room-shape" x="482" y="64" width="27" height="76" rx="2"/><text class="room-label room-label--tiny" x="495.5" y="106">S1</text>
+  </g>
+  <g class="map-zone room room--wet" data-venue="shower_2" data-label="Shower 2" data-x="522.5" data-y="82" data-person-x="522.5" data-person-y="121" tabindex="0" role="button" aria-label="Open Shower 2 room ledger">
+    <rect class="room-shape" x="509" y="64" width="27" height="76" rx="2"/><text class="room-label room-label--tiny" x="522.5" y="106">S2</text>
+  </g>
+  <g class="map-zone room room--wet" data-venue="shower_3" data-label="Shower 3" data-x="549" data-y="82" data-person-x="549" data-person-y="121" tabindex="0" role="button" aria-label="Open Shower 3 room ledger">
+    <rect class="room-shape" x="536" y="64" width="26" height="76" rx="2"/><text class="room-label room-label--tiny" x="549" y="106">S3</text>
+  </g>
+
+  <g class="map-zone room room--corridor" data-venue="corridor" data-label="Corridor" data-x="405" data-y="560" data-person-x="405" data-person-y="520" tabindex="0" role="button" aria-label="Open Corridor room ledger">
+    <path class="room-shape" d="M370 30H440V336H466V386H440V596H414V650H370Z"/>
+    <text class="room-label corridor-label" x="405" y="475" transform="rotate(-90 405 475)">MAIN CORRIDOR</text>
+  </g>
+  <g class="map-zone room room--activity" data-venue="activity_room" data-label="Activity room" data-x="278" data-y="552" data-person-x="348" data-person-y="552" tabindex="0" role="button" aria-label="Open Activity room ledger">
+    <rect class="room-shape" x="258" y="430" width="112" height="150" rx="3"/>
+    <text class="room-label" x="314" y="500">ACTIVITY</text><text class="room-label" x="314" y="514">ROOM</text>
+  </g>
+  <g class="map-zone room room--balcony" data-venue="balcony" data-label="Balcony" data-x="82" data-y="552" data-person-x="230" data-person-y="552" tabindex="0" role="button" aria-label="Open Balcony room ledger">
+    <path class="room-shape" d="M54 430H258V580H76Q54 580 54 558Z"/>
+    <text class="room-label" x="156" y="500">BALCONY</text><text class="room-type" x="156" y="516">Outdoor area</text>
+  </g>
+  <g class="map-zone room room--dining" data-venue="dining" data-label="Dining" data-x="145" data-y="690" data-person-x="345" data-person-y="690" tabindex="0" role="button" aria-label="Open Dining room ledger">
+    <path class="room-shape" d="M116 580H370V714H142Q116 714 116 688Z"/>
+    <text class="room-label" x="243" y="644">DINING AREA</text><text class="room-type" x="243" y="660">Meals</text>
+  </g>
+  <g class="map-zone room room--wet" data-venue="lower_toilet" data-label="Lower toilet" data-x="60" data-y="770" data-person-x="120" data-person-y="770" tabindex="0" role="button" aria-label="Open Dining Area Toilet room ledger">
+    <path class="room-shape" d="M38 650H116V714H142V790H58Q38 790 38 770Z"/>
+    <text class="room-label" x="86" y="727">DINING</text><text class="room-label" x="86" y="741">TOILET</text>
+  </g>
+  <g class="map-zone room room--visitor" data-venue="visitor_area" data-label="Visitor area" data-x="464" data-y="558" data-person-x="540" data-person-y="558" tabindex="0" role="button" aria-label="Open Visitor Area room ledger">
+    <path class="room-shape" d="M466 336H562V590H440V386H466Z"/>
+    <text class="room-label" x="512" y="470">VISITOR</text><text class="room-label" x="512" y="484">AREA</text>
+  </g>
+
+  <g class="entrance-mark" aria-label="Ward entrance">
+    <rect class="entrance-threshold" x="396" y="647" width="18" height="6" rx="1"/>
+    <path d="M397 647Q405 637 413 647"/>
+    <text x="405" y="660">ENTRANCE</text>
+  </g>
+
+  <!-- The owner-provided orientation places north toward the bottom of the diagram. -->
+  <g class="north-mark" transform="translate(686 752)" aria-label="North points toward the bottom of the plan">
+    <text x="0" y="-17">NORTH</text><path d="M0-9V31M-9 20 0 31 9 20"/>
+  </g>
+  <text class="plan-note" x="244" y="817">ORIGINAL PSYCH-MAP WARD GEOMETRY · NORTH IS DOWN</text>
+
+  <!-- Live person markers are generated here from the supplied silhouette. -->
+  <g id="people-marker-layer" aria-label="People currently detected"></g>
+</svg>

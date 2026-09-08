@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://psych-map.local/contracts/codebuddy-manifest.v1.schema.json",
+  "title": "Psych-MAP CodeBuddy selector manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "factIds", "actions"],
+  "properties": {
+    "schemaVersion": { "const": "psychmap.codebuddy-manifest.v1" },
+    "factIds": { "type": "array", "maxItems": 5, "items": { "type": "string", "maxLength": 160 } },
+    "actions": {
+      "type": "array",
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type"],
+        "properties": {
+          "type": { "enum": ["set_day_range", "select_days", "toggle_metric", "focus_zone"] },
+          "fromDay": { "type": "integer" },
+          "toDay": { "type": "integer" },
+          "days": { "type": "array", "maxItems": 90, "items": { "type": "integer" } },
+          "metricId": { "type": "string" },
+          "enabled": { "type": "boolean" },
+          "zoneId": { "type": "string" }
+        }
+      }
+    }
+  }
+}

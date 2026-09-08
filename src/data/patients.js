@@ -1,12 +1,13 @@
-// Synthetic patient roster — no real patient data
+// De-identified demonstration roster — no direct patient identifiers
 
 export const PATIENTS = [
   {
     id: 'PT-001',
+    folderId: 'pf_7f3a1c',
     displayName: 'Patient A',
     ward: 'Ward 4B — Acute Psychiatric',
     admissionDate: '2026-07-30',
-    broadContext: 'Assigned to Cubicle #1. Early cubicle-bound pattern with later participation during a synthetic risperidone titration and OT activation; attribution is uncertain.',
+    broadContext: 'Assigned to Cubicle #1. Early cubicle-bound pattern with later participation during a de-identified risperidone titration and OT activation; attribution is uncertain.',
     primaryDiagnosis: 'Schizophrenia',
     personaFocus: 'Improvement in participation',
     assignedCubicle: 'cubicle_1',
@@ -17,10 +18,11 @@ export const PATIENTS = [
   },
   {
     id: 'PT-002',
+    folderId: 'pf_91bd42',
     displayName: 'Patient B',
     ward: 'Ward 4B — Acute Psychiatric',
     admissionDate: '2026-07-30',
-    broadContext: 'Assigned to Cubicle #3. A 90-day admission showing prolonged morning shower occupancy across synthetic sertraline titration and a structured routine plan, followed by gradual functional change.',
+    broadContext: 'Assigned to Cubicle #3. A 90-day admission showing prolonged morning shower occupancy across a de-identified sertraline titration and a structured routine plan, followed by gradual functional change.',
     primaryDiagnosis: 'Obsessive-compulsive disorder',
     personaFocus: 'Excessive morning shower duration',
     assignedCubicle: 'cubicle_3',
@@ -31,10 +33,11 @@ export const PATIENTS = [
   },
   {
     id: 'PT-003',
+    folderId: 'pf_c84e57',
     displayName: 'Patient C',
     ward: 'Ward 4B — Acute Psychiatric',
     admissionDate: '2026-07-30',
-    broadContext: 'Assigned to Cubicle #4. Escalating movement and reduced overnight rest followed by improvement during a synthetic quetiapine titration; temporal association does not establish effect.',
+    broadContext: 'Assigned to Cubicle #4. Escalating movement and reduced overnight rest followed by improvement during a de-identified quetiapine titration; temporal association does not establish effect.',
     primaryDiagnosis: 'Hypomania',
     personaFocus: 'Social roaming followed by improvement',
     assignedCubicle: 'cubicle_4',

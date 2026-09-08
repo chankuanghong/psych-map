@@ -1,0 +1,620 @@
+[
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "sleep",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "does not claim complete evidence",
+        "passed": true
+      },
+      {
+        "name": "identifies additional information",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "medication",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "does not claim complete evidence",
+        "passed": true
+      },
+      {
+        "name": "identifies additional information",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "eating",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "does not claim complete evidence",
+        "passed": true
+      },
+      {
+        "name": "identifies additional information",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "mood",
+    "status": "fail",
+    "error": "Invalid evidence plan",
+    "checks": []
+  },
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "anxiety",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "does not claim complete evidence",
+        "passed": true
+      },
+      {
+        "name": "identifies additional information",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "psychosis",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "does not claim complete evidence",
+        "passed": true
+      },
+      {
+        "name": "identifies additional information",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "leave",
+    "status": "fail",
+    "error": "Invalid evidence plan",
+    "checks": []
+  },
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "side_effects",
+    "status": "fail",
+    "error": "Invalid answerability contract",
+    "checks": []
+  },
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "suicidal_thoughts",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "does not claim complete evidence",
+        "passed": true
+      },
+      {
+        "name": "identifies additional information",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "family",
+    "status": "fail",
+    "error": "Invalid structured output fields",
+    "checks": []
+  },
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "discharge",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "does not claim complete evidence",
+        "passed": true
+      },
+      {
+        "name": "identifies additional information",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "caregiver",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "does not claim complete evidence",
+        "passed": true
+      },
+      {
+        "name": "identifies additional information",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "stepdown",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "does not claim complete evidence",
+        "passed": true
+      },
+      {
+        "name": "identifies additional information",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "willingness",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "does not claim complete evidence",
+        "passed": true
+      },
+      {
+        "name": "identifies additional information",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "spatial",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "returns relevant evidence",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      },
+      {
+        "name": "fixture endpoints equal expected values",
+        "passed": true
+      },
+      {
+        "name": "agent actually selects endpoint comparison",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "ambiguous",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "planner asks clarification",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "engine-2",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "real model no fallback",
+        "passed": true
+      },
+      {
+        "name": "correct clustering and category",
+        "passed": true
+      },
+      {
+        "name": "idempotent second scan",
+        "passed": true
+      },
+      {
+        "name": "new class pending human approval",
+        "passed": true
+      },
+      {
+        "name": "approval activates policy",
+        "passed": true
+      },
+      {
+        "name": "revocation deactivates policy",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-41-41.309Z",
+    "id": "engine-3",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "real model planning and review without fallback",
+        "passed": true
+      },
+      {
+        "name": "cited clinician and comparison plan",
+        "passed": true
+      },
+      {
+        "name": "review recorded",
+        "passed": true
+      },
+      {
+        "name": "no numerical threshold proposal",
+        "passed": true
+      },
+      {
+        "name": "patient data unchanged",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-44-12.616Z",
+    "id": "psychosis",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "does not claim complete evidence",
+        "passed": true
+      },
+      {
+        "name": "identifies additional information",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-44-12.616Z",
+    "id": "anxiety",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "does not claim complete evidence",
+        "passed": true
+      },
+      {
+        "name": "identifies additional information",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-44-12.616Z",
+    "id": "mood",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "does not claim complete evidence",
+        "passed": true
+      },
+      {
+        "name": "identifies additional information",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-44-12.616Z",
+    "id": "side_effects",
+    "status": "fail",
+    "error": "Interpretation contains unsupported numeric or treatment instruction",
+    "checks": []
+  },
+  {
+    "run": "2026-09-08T14-44-12.616Z",
+    "id": "suicidal_thoughts",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "does not claim complete evidence",
+        "passed": true
+      },
+      {
+        "name": "identifies additional information",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-44-12.616Z",
+    "id": "leave",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "does not claim complete evidence",
+        "passed": true
+      },
+      {
+        "name": "identifies additional information",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-44-12.616Z",
+    "id": "family",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "returns relevant evidence",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      },
+      {
+        "name": "selects family feedback source",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-45-42.080Z",
+    "id": "side_effects",
+    "status": "fail",
+    "error": "Invalid structured output fields",
+    "checks": []
+  },
+  {
+    "run": "2026-09-08T14-49-50.953Z",
+    "id": "side_effects",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "clear question gets answer or explicit evidence gap, not clarification",
+        "passed": true
+      },
+      {
+        "name": "does not claim complete evidence",
+        "passed": true
+      },
+      {
+        "name": "identifies additional information",
+        "passed": true
+      },
+      {
+        "name": "selected facts have resolvable sources",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-52-42.391Z",
+    "id": "engine-2",
+    "status": "fail",
+    "checks": [
+      {
+        "name": "real model no fallback",
+        "passed": false
+      },
+      {
+        "name": "correct clustering and category",
+        "passed": false
+      },
+      {
+        "name": "idempotent second scan",
+        "passed": true
+      },
+      {
+        "name": "new class pending human approval",
+        "passed": true
+      },
+      {
+        "name": "approval activates policy",
+        "passed": true
+      },
+      {
+        "name": "revocation deactivates policy",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-52-42.391Z",
+    "id": "engine-3",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "real model planning and review without fallback",
+        "passed": true
+      },
+      {
+        "name": "cited clinician and comparison plan",
+        "passed": true
+      },
+      {
+        "name": "review recorded",
+        "passed": true
+      },
+      {
+        "name": "no numerical threshold proposal",
+        "passed": true
+      },
+      {
+        "name": "patient data unchanged",
+        "passed": true
+      }
+    ]
+  },
+  {
+    "run": "2026-09-08T14-54-18.688Z",
+    "id": "engine-2",
+    "status": "pass",
+    "checks": [
+      {
+        "name": "real model no fallback",
+        "passed": true
+      },
+      {
+        "name": "correct clustering and category",
+        "passed": true
+      },
+      {
+        "name": "idempotent second scan",
+        "passed": true
+      },
+      {
+        "name": "new class pending human approval",
+        "passed": true
+      },
+      {
+        "name": "approval activates policy",
+        "passed": true
+      },
+      {
+        "name": "revocation deactivates policy",
+        "passed": true
+      }
+    ]
+  }
+]

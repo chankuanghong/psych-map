@@ -35,15 +35,15 @@ export default function MDTBrief({ patientId, patient, range, onClose }) {
   ]
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-800/60 p-4 backdrop-blur-sm" onClick={event => { if (event.target === event.currentTarget) onClose() }}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-800/60 p-4 backdrop-blur-sm" onMouseDown={event => { if (event.target === event.currentTarget) onClose() }}>
       <div ref={ref} className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-6 py-4">
-          <div><p className="mb-0.5 text-xs font-semibold uppercase tracking-widest text-slate-400">MDT Brief · Synthetic data</p><p className="text-lg font-bold text-slate-800">{patient.displayName}</p><p className="mt-0.5 text-xs text-slate-400">{patient.id} · Days {range[0]}–{range[1]} · {briefDate}</p></div>
+          <div><p className="mb-0.5 text-xs font-semibold uppercase tracking-widest text-slate-400">MDT Brief · De-identified demo data</p><p className="text-lg font-bold text-slate-800">{patient.displayName}</p><p className="mt-0.5 text-xs text-slate-400">{patient.id} · Days {range[0]}–{range[1]} · {briefDate}</p></div>
           <button onClick={onClose} aria-label="Close MDT Brief" className="rounded p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600"><X size={18} /></button>
         </div>
 
         <div className="space-y-6 p-6">
-          <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3"><AlertCircle size={13} className="mt-0.5 shrink-0 text-amber-600" /><p className="text-xs leading-relaxed text-amber-700">Synthetic behavioural evidence only. Location does not prove activity, sleep, interaction or causality. Clinician review is required.</p></div>
+          <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3"><AlertCircle size={13} className="mt-0.5 shrink-0 text-amber-600" /><p className="text-xs leading-relaxed text-amber-700">De-identified demonstration evidence only. Location does not prove activity, sleep, interaction or causality. Clinician review is required.</p></div>
 
           <section><SectionHeader number="01" title="Current pattern" /><div className="rounded-lg border border-slate-200 bg-slate-50 p-4"><p className="font-semibold text-slate-800">{pattern.title}</p><p className="mt-2 text-sm leading-relaxed text-slate-600">The selected evidence covers Days {range[0]}–{range[1]}. {packet.deterministicSignals.length ? `${packet.deterministicSignals.length} reproducible signal${packet.deterministicSignals.length === 1 ? '' : 's'} crossed configured review thresholds.` : 'No configured review threshold was crossed; this does not establish clinical stability.'}</p></div></section>
 
@@ -55,7 +55,7 @@ export default function MDTBrief({ patientId, patient, range, onClose }) {
 
           <section><SectionHeader number="05" title="Suggested MDT focus" /><div className="rounded-lg border border-amber-200 bg-amber-50 p-4"><div className="flex items-start gap-2"><CheckCircle size={14} className="mt-0.5 shrink-0 text-amber-600" /><p className="text-sm leading-relaxed text-amber-800">{pattern.focus}</p></div><p className="mt-2 text-xs text-amber-600">Discussion prompt only. Clinical decisions remain with the treating team.</p></div></section>
 
-          <section className="pb-2"><SectionHeader number="06" title="Evidence caveats" /><ul className="space-y-1 text-xs leading-relaxed text-slate-400"><li>· Selected period: Days {range[0]}–{range[1]} · Source: synthetic simulation</li><li>· Threshold alerts are deterministic and are not validated clinical scales</li><li>· Temporal association does not imply causality</li><li>· Location presence does not establish sleep, self-care, consent or social quality</li></ul></section>
+          <section className="pb-2"><SectionHeader number="06" title="Evidence caveats" /><ul className="space-y-1 text-xs leading-relaxed text-slate-400"><li>· Selected period: Days {range[0]}–{range[1]} · Source: de-identified demonstration extract</li><li>· Threshold alerts are deterministic and are not validated clinical scales</li><li>· Temporal association does not imply causality</li><li>· Location presence does not establish sleep, self-care, consent or social quality</li></ul></section>
         </div>
       </div>
     </div>

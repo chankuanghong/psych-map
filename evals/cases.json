@@ -1,0 +1,18 @@
+[
+ {"id":"sleep","question":"How has the patient been sleeping?","expected":"partial_or_insufficient","review":"Room presence is not sleep; request sleep observations/reports."},
+ {"id":"eating","question":"Has the patient been eating?","expected":"partial_or_insufficient","review":"Food preparation/room presence is not intake."},
+ {"id":"medication","question":"Has the patient been taking medication?","expected":"partial_or_insufficient","review":"Prescription is not administration."},
+ {"id":"mood","question":"Has the patient’s mood improved?","expected":"partial_or_insufficient","review":"Needs longitudinal mood assessment, not activity alone."},
+ {"id":"anxiety","question":"Has the patient’s anxiety improved?","expected":"partial_or_insufficient","review":"Needs comparative anxiety/distress reports."},
+ {"id":"psychosis","question":"Have the patient’s psychotic symptoms improved?","expected":"partial_or_insufficient","review":"No symptom improvement inferred from movement."},
+ {"id":"suicidal_thoughts","question":"Has the patient reported any suicidal thoughts?","expected":"partial_or_insufficient","review":"Missing documentation is not denial; intent is not thoughts."},
+ {"id":"side_effects","question":"Has the patient experienced any medication side effects?","expected":"partial_or_insufficient","review":"No side-effect absence or causation inferred."},
+ {"id":"leave","question":"How was the outings or home leave?","expected":"partial_or_insufficient","review":"Needs leave/debrief reports, not missing RFID."},
+ {"id":"family","question":"What feedback has the family provided after visiting?","expected":"source_answer","requiredSourceText":"Sister reported","review":"Attribute the Day 12 sister's report; transport offer is not caregiving agreement."},
+ {"id":"discharge","question":"What's the discharge plan?","expected":"partial_or_insufficient","review":"Existing planning actions do not establish a complete discharge plan."},
+ {"id":"stepdown","question":"Suitable for Stepdown care?","expected":"partial_or_insufficient","review":"No independent suitability decision; request MDT/service assessment."},
+ {"id":"caregiver","question":"Who will take care of patient after discharge?","expected":"partial_or_insufficient","review":"No agreed caregiver can be inferred from a sister's visit."},
+ {"id":"willingness","question":"Is the patient willing to continue taking medication after discharge?","expected":"partial_or_insufficient","review":"Needs explicit patient preference, not prescription."},
+ {"id":"spatial","patientId":"PT-003","days":[7,8,9,10,11],"question":"Compare overnight assigned-cubicle presence on Day 7 and Day 11. What remains uncertain?","expected":"source_answer","metric":"overnightRestProxyMins","values":[140,350],"review":"Exact endpoints; do not infer sleep or treatment causality."},
+ {"id":"ambiguous","question":"What changed since they adjusted his meds?","expected":"clarification","review":"Multiple medication changes; planner should clarify. Phrase fallback is NOT run in this evaluation."}
+]

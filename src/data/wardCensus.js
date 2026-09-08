@@ -61,9 +61,9 @@ export const LIGHTWEIGHT_WARD_PERSONAS = STATUS_SEQUENCE.map((status, index) => 
 })
 
 export const DETAILED_WARD_SUMMARIES = [
-  { id: 'PT-001', displayName: 'Patient A', age: 34, sex: 'Male', diagnosis: 'Schizophrenia', admissionDays: 14, assignedCubicle: 'Cubicle #1', status: 'improving', statusLabel: 'Improving', participationBand: 'Moderate', changePercent: 31, structuredSessions: 5, spacesUsed: 7, dataCompleteness: 98, reviewReason: 'Broader participation across ward spaces' },
-  { id: 'PT-002', displayName: 'Patient B', age: 28, sex: 'Female', diagnosis: 'Obsessive-compulsive disorder', admissionDays: 90, assignedCubicle: 'Cubicle #3', status: 'review', statusLabel: 'Needs context', participationBand: 'Low', changePercent: 8, structuredSessions: 4, spacesUsed: 5, dataCompleteness: 97, reviewReason: 'Morning routine continues to affect participation' },
-  { id: 'PT-003', displayName: 'Patient C', age: 47, sex: 'Male', diagnosis: 'Hypomania', admissionDays: 14, assignedCubicle: 'Cubicle #4', status: 'improving', statusLabel: 'Improving', participationBand: 'Variable', changePercent: 19, structuredSessions: 3, spacesUsed: 8, dataCompleteness: 96, reviewReason: 'Roaming and overnight pattern settling' },
+  { id: 'PT-001', displayName: 'Patient A', age: 34, sex: 'Male', diagnosis: 'Schizophrenia', admissionDays: 14, assignedCubicle: 'Cubicle #1', status: 'improving', statusLabel: 'Improving', displayLevel: 'priority', participationBand: 'Moderate', changePercent: 31, structuredSessions: 5, spacesUsed: 7, dataCompleteness: 98, reviewReason: 'Broader participation across ward spaces' },
+  { id: 'PT-002', displayName: 'Patient B', age: 28, sex: 'Female', diagnosis: 'Obsessive-compulsive disorder', admissionDays: 90, assignedCubicle: 'Cubicle #3', status: 'review', statusLabel: 'Needs context', displayLevel: 'review', participationBand: 'Low', changePercent: 8, structuredSessions: 4, spacesUsed: 5, dataCompleteness: 97, reviewReason: 'Morning routine continues to affect participation' },
+  { id: 'PT-003', displayName: 'Patient C', age: 47, sex: 'Male', diagnosis: 'Hypomania', admissionDays: 14, assignedCubicle: 'Cubicle #4', status: 'improving', statusLabel: 'Improving', displayLevel: 'clear', participationBand: 'Variable', changePercent: 19, structuredSessions: 3, spacesUsed: 8, dataCompleteness: 96, reviewReason: 'Roaming and overnight pattern settling' },
 ]
 
 export const WARD_PARTICIPATION_SUMMARIES = [...DETAILED_WARD_SUMMARIES, ...LIGHTWEIGHT_WARD_PERSONAS]

@@ -33,7 +33,7 @@ const buildWardPacket = () => {
       dataCompleteness: row.dataCompleteness, reasonSurfaced: row.reviewReason,
     })),
     interpretationRules: [
-      'This is synthetic demonstration data.',
+      'This is de-identified demonstration data.',
       'Underutilisation is a behavioural proxy based on recorded spaces and structured sessions, not a judgement of motivation.',
       'Aggregate ward patterns by default and name a patient only when the question requires review allocation.',
       'Do not infer staff performance, treatment quality or patient worth.',
@@ -82,7 +82,7 @@ export default function WardInsightAgent({ profession }) {
       source = `${payload.provider} · ${payload.model}`
     } catch {
       answer = deterministicAnswer(cleaned, packet)
-      source = 'Deterministic fallback · Gemini unavailable'
+      source = 'Deterministic ward summary · local rules'
     }
     setConversation(items => [...items, { question: cleaned, answer, source }])
     setLoading(false)
@@ -94,7 +94,7 @@ export default function WardInsightAgent({ profession }) {
       <div className="card-body">
         <div className="mb-3 flex flex-wrap gap-2">{QUESTIONS.map(item => <button key={item} type="button" onClick={() => ask(item)} disabled={loading} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 hover:border-brand-300 hover:bg-brand-50 disabled:opacity-50">{item}</button>)}</div>
         {conversation.length > 0 && <div className="mb-3 max-h-72 space-y-3 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-3">{conversation.map((item, index) => <div key={`${item.question}-${index}`}><p className="ml-auto max-w-[85%] rounded-lg bg-brand-700 px-3 py-2 text-xs text-white">{item.question}</p><div className="mt-1 max-w-[92%] rounded-lg border border-slate-200 bg-white px-3 py-2.5"><div className="mb-1 flex justify-between gap-2 text-[9px] uppercase tracking-wide text-slate-400"><span>Ward evidence response</span><span>{item.source}</span></div><p className="whitespace-pre-line text-sm leading-relaxed text-slate-600">{item.answer}</p></div></div>)}</div>}
-        <form onSubmit={event => { event.preventDefault(); ask() }} className="flex gap-2"><input value={question} onChange={event => setQuestion(event.target.value)} placeholder="Ask about underutilisation, deterioration, data gaps…" className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100" /><button type="submit" disabled={!question.trim() || loading} className="flex items-center gap-2 rounded-lg bg-brand-700 px-4 py-2.5 text-sm font-medium text-white disabled:opacity-40">{loading ? <LoaderCircle size={14} className="animate-spin" /> : <Send size={14} />}{loading ? 'Analysing' : 'Ask'}</button></form>
+        <form onSubmit={event => { event.preventDefault(); ask() }} className="flex gap-2"><input value={question} onChange={event => setQuestion(event.target.value)} placeholder="Ask about underutilisation, deterioration, data gaps…" className="min-w-0 flex-1 rounded-lg border border-slate-300 px-3 py-2.5 text-base focus:border-brand-500 focus:ring-2 focus:ring-brand-100 sm:text-sm" /><button type="submit" disabled={!question.trim() || loading} className="flex min-h-11 items-center gap-2 rounded-lg bg-brand-700 px-4 py-2.5 text-sm font-medium text-white disabled:opacity-40">{loading ? <LoaderCircle size={14} className="animate-spin" /> : <Send size={14} />}{loading ? 'Analysing' : 'Ask'}</button></form>
       </div>
     </section>
   )
