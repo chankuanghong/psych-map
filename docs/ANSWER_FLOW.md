@@ -10,7 +10,7 @@ Staff judge the clinical meaning.**
 | 1 | Staff | Choose patient and dates. Ask the question. |
 | 2 | CodeBuddy | Propose which tools and records to use. |
 | 3 | Code | Validate the plan. Retrieve facts and calculate values. |
-| 4 | CodeBuddy | Select fact IDs and write a separate interpretation. |
+| 4 | CodeBuddy + Code | Assess coverage. Optionally run one different, validated retrieval; then select facts and interpret. |
 | 5 | Code + CodeBuddy reviewer | Code checks IDs and sources. The reviewer checks meaning and support. |
 | 6 | Code + Staff | Save the audit, display the result and let staff inspect the sources. |
 
@@ -39,7 +39,56 @@ flowchart TD
 and requested days must belong to the evidence scope. Code retrieves records,
 calculates values and attaches fact IDs and source IDs.
 
-### B. Write and review
+### B. Check coverage and optionally retrieve once more
+
+```mermaid
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
+flowchart TD
+    A["AI: Assess coverage"] --> B{"Useful follow-up?"}
+    B -- No --> C["Answer or report gap"]
+    B -- Yes --> D{"CODE: New and valid?"}
+    D -- No --> E["Reject and explain"]
+    D -- Yes --> F["CODE: Retrieve once"]
+    F --> G["CODE: Merge facts"]
+    G --> C
+    classDef ai fill:#eeeafa,stroke:#77619c,color:#201b31;
+    classDef code fill:#e3f2f0,stroke:#16877e,color:#153d38;
+    class A,B ai;
+    class D,E,F,G code;
+```
+
+**Implemented:** the first synthesis can return `followUp` only for a partial or
+insufficient answer. Code allows one follow-up plan, with up to four steps, within
+the original scope. It rejects repeated selections even if reordered or regrouped.
+New evidence is merged by fact ID; comparison IDs stay distinct across attempts.
+The final synthesis cannot ask for another retrieval. There is no retry after a
+second-review failure and no retry of an invalid model output.
+
+**Example of the new optional field (illustrative, not a captured response):**
+
+```json
+{
+  "followUp": {
+    "reason": "Check the recorded family meeting for direct feedback",
+    "steps": [
+      {"tool": "read_events", "kinds": ["clinical_event"], "days": [12]}
+    ]
+  }
+}
+```
+
+The existing `answerability`, `factIds`, `interpretations`, `actions` and
+`missingInformation` fields remain. With no useful new source, the model returns
+`followUp: null` (or omits it) and explains missing documentation.
+
+**Audit outputs:** `follow_up_proposed`, `follow_up_retrieved`, and
+`planning.retrievalAttempts`. Each attempt includes its plan, tool trace and
+`newFactIds`; the follow-up also records its reason. The final response still goes
+through the source checks, second review and audit-save gate below.
+
+### C. Write and review
+
+[See retry tests, actual outputs and retained failed trials](../evals/published/RETRIEVAL_FOLLOW_UP.md).
 
 ```mermaid
 %%{init: {"flowchart": {"htmlLabels": false}}}%%
@@ -61,7 +110,7 @@ missing sources. The **second CodeBuddy review** checks relevance and whether
 the selected facts support the answer and interpretation. It is not a grammar
 guarantee or a clinical validation.
 
-### C. Save and show
+### D. Save and show
 
 ```mermaid
 %%{init: {"flowchart": {"htmlLabels": false}}}%%
@@ -89,7 +138,8 @@ These are calls inside the **answer engine**, not the three product engines.
 The other engines are question scanning and weekly research.
 
 A planner can instead ask for clarification. With no adequate retrieved facts,
-the app reports missing evidence and does not run the second reviewer.
+the app can request one alternative retrieval. If evidence is still inadequate,
+it reports missing evidence and does not run the second reviewer.
 Early invalid requests are rejected before this answer-audit flow.
 
 ## Specific example: family feedback
@@ -101,6 +151,7 @@ Early invalid requests are rejected before this answer-audit flow.
 
 **Fixture:** Fictional Patient A, Days 1–14. The following uses the actual note and
 observed browser answer; JSON below is shortened to explain the mechanism.
+This historical browser run predates the follow-up feature; it is not a retry demonstration.
 
 ### 1. Code prepares the source fact
 

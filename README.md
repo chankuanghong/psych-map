@@ -67,6 +67,10 @@ A second AI review checks the proposed interpretation. If that review fails,
 interpretations and extra pointers are withheld. SQLite saves the question,
 evidence and final answer before delivery.
 
+If evidence is incomplete, CodeBuddy can request **one different retrieval**
+within the same patient/date scope. Code blocks repeated or invalid requests.
+Both attempts are recorded. If documentation is still missing, the answer says so.
+
 These checks reduce fabrication. They do not guarantee that every interpretation
 is correct or useful.
 
@@ -76,7 +80,7 @@ is correct or useful.
 
 | Check | Recorded result |
 | --- | --- |
-| Application tests | **71 passed** |
+| Application tests | **78 passed** |
 | RFID software tests | **35 passed** |
 | Live CodeBuddy scenarios | **18 latest results passed**, across the initial run and targeted retests |
 | Live browser test | Family question → retrieval → second review → source inspection → saved audit |

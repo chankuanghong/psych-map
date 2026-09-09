@@ -59,7 +59,7 @@ export function validateEvidencePlan(plan, snapshot) {
   return plan
 }
 
-export function executeEvidencePlan(plan, snapshot) {
+export function executeEvidencePlan(plan, snapshot, stepOffset = 0) {
   validateEvidencePlan(plan, snapshot)
   const selected = new Map(); const trace = []
   for (const [index, step] of plan.steps.entries()) {
@@ -73,7 +73,7 @@ export function executeEvidencePlan(plan, snapshot) {
       const mean = rows => Math.round(rows.reduce((sum, f) => sum + f.value, 0) / rows.length)
       const first = mean(before); const second = mean(after); const definition = METRIC_REGISTRY[metricId]
       const display = value => definition.unit==='minutes' ? formatDuration(value) : `${value} ${definition.unit}`
-      facts.push({ id: `fact:planned:${index}:${metricId}`, kind: 'period_comparison', metricId, label: `${definition.label} planned comparison`, value: { first, second }, unit: definition.unit,
+      facts.push({ id: `fact:planned:${index + stepOffset}:${metricId}`, kind: 'period_comparison', metricId, label: `${definition.label} planned comparison`, value: { first, second }, unit: definition.unit,
         sourceRecordIds: [...new Set([...before, ...after].flatMap(f => f.sourceRecordIds))],
         statement: `${definition.label} averaged ${display(first)}/day on selected Days ${[...step.beforeDays].sort((a,b)=>a-b).join(', ')} and ${display(second)}/day on selected Days ${[...step.afterDays].sort((a,b)=>a-b).join(', ')}.`,
       })
@@ -92,7 +92,11 @@ export function validatePlannedAnswer(answer, facts, availableDays) {
   // transport shape, then apply every existing inner evidence/schema gate. The
   // original proposal is still logged before this function runs.
   if (answer && Object.keys(answer).length === 1 && answer.contract && typeof answer.contract === 'object' && !Array.isArray(answer.contract)) answer = answer.contract
-  exactKeys(answer, ['factIds', 'interpretations', 'answerability', 'actions', 'missingInformation'])
+  exactKeys(answer, ['factIds', 'interpretations', 'answerability', 'actions', 'missingInformation', 'followUp'])
+  if (answer.followUp != null) {
+    exactKeys(answer.followUp, ['reason', 'steps'])
+    if (answer.answerability === 'sufficient' || !text(answer.followUp.reason, 240) || !Array.isArray(answer.followUp.steps)) throw new Error('Invalid follow-up request')
+  }
   if (answer.missingInformation !== undefined && (!Array.isArray(answer.missingInformation) || answer.missingInformation.length > 3 || answer.missingInformation.some(item => !text(item, 240)))) throw new Error('Invalid missing information requests')
   if (!['sufficient', 'partial', 'insufficient'].includes(answer.answerability) || !Array.isArray(answer.factIds) || answer.factIds.length > 5 || new Set(answer.factIds).size !== answer.factIds.length || answer.factIds.some(id => !facts.some(f => f.id === id))) throw new Error('Answer escaped retrieved evidence')
   if (answer.answerability === 'insufficient' ? answer.factIds.length !== 0 : answer.factIds.length === 0) throw new Error('Invalid answerability contract')
@@ -109,6 +113,23 @@ export function validatePlannedAnswer(answer, facts, availableDays) {
   const actions = validateUiActions(answer.actions, { availableDays })
   if (actions.rejected.length || (answer.answerability === 'insufficient' && (answer.actions.length || answer.interpretations.length))) throw new Error('Answer contains invalid actions or unsupported interpretation')
   return { ...answer, actions: actions.accepted }
+}
+
+// Compare operations, not JSON key order. Regrouping or reordering the same
+// metric/kind/day selections is not a new retrieval strategy.
+const operationKeys = step => step.tool === 'compare_periods'
+  ? step.metrics.map(metric => JSON.stringify([step.tool, metric, [...step.beforeDays].sort((a,b)=>a-b), [...step.afterDays].sort((a,b)=>a-b)]))
+  : (step.metrics || step.kinds).flatMap(field => step.days.map(day => JSON.stringify([step.tool, field, day])))
+
+export function validateFollowUp(followUp, previousPlan, snapshot) {
+  const plan = validateEvidencePlan({ schemaVersion: PLAN_VERSION, intent: followUp.reason, clarification: null, steps: followUp.steps }, snapshot)
+  const seen = new Set(previousPlan.steps.flatMap(operationKeys))
+  for (const step of plan.steps) {
+    const keys = operationKeys(step)
+    if (keys.every(key => seen.has(key))) throw new Error('Duplicate follow-up retrieval')
+    keys.forEach(key => seen.add(key))
+  }
+  return plan
 }
 
 export async function runEvidencePlanner({ question, snapshot, professionId, conversationContext = [], call = callStructuredCodeBuddy, audit = () => {} }) {
@@ -132,17 +153,38 @@ export async function runEvidencePlanner({ question, snapshot, professionId, con
     if (plan.clarification) { audit({ status:'clarification', plan }); return { plan, clarification:plan.clarification, trace:[], facts:[] } }
     execution = executeEvidencePlan(plan, snapshot)
     audit({ status:'retrieved', plan, ...execution })
-    if (!execution.facts.length) return { plan, ...execution, factIds:[], interpretations:[], actions:[], answerability:'insufficient' }
+    const retrievalAttempts = [{ attempt: 1, plan, trace: execution.trace, newFactIds: execution.facts.map(f => f.id) }]
+    for (let attempt = 1; attempt <= 2; attempt++) {
     const proposedAnswer = await call({
       task: 'Answer using only the tool results. Select at most five directly relevant fact IDs. Do not select merely because a fact exists. Supply up to two concise, cautious interpretations with supporting selected fact IDs; never include numeric claims in interpretation text. No diagnosis, prescription, treatment change, causal treatment claim, or sleep inference. If evidence cannot answer, return insufficient with empty arrays. Distinguish partial evidence. Return JSON only.',
       guardrails:GUARDRAILS, question, plan, toolTrace:execution.trace,
+      retrievalAttempt: attempt,
+      followUpStepFormat: 'followUp.steps contains FLAT plan-step objects, NOT tool-trace objects. For read_events the only keys are tool, kinds, days. Never use an arguments wrapper, matched, returned or truncated. Those belong only to execution traces and will be rejected in a plan. When requesting followUp, set missingInformation:[]; put the short retrieval reason ONLY in followUp.reason. Ask the user for missing documentation only in the final answer, after retrieval is finished.',
+      followUpPolicy: attempt === 1
+        ? 'Before declaring documentation missing, compare the gap with catalog.events and the executed toolTrace. If a relevant unqueried record is listed, request it using followUp:{reason,steps}; do not ask the user to supply a record already listed as available. A catalog title is not itself evidence: retrieve its contents. If partial or insufficient, ONE different retrieval is allowed using the same tool-step schemas as the original plan. For read_events use {tool:"read_events",kinds:["clinical_event"],days:[allowed day]}. Do not repeat executed selections or retry to obtain a more confident answer. Only if no useful retrieval remains, set followUp:null and explain the missing documentation. No new patient/date scope. No follow-up for sufficient answers.'
+        : 'Final attempt. followUp MUST be null or omitted. Answer from the combined evidence or state missing documentation. Do not request another retrieval.',
+      catalog: { metrics: METRIC_REGISTRY, eventKinds: EVENT_KINDS, availableDays: snapshot.scope.selectedDays, events: snapshot.facts.filter(f => f.kind === 'clinical_event').map(f => ({id:f.id,day:f.day,title:f.label})) },
       facts:execution.facts.map(({id,statement,kind})=>({id,statement,kind})),
-      contract:{ factIds:['retrieved ID'], answerability:'sufficient|partial|insufficient', interpretations:[{text:'cautious interpretation without numbers',factIds:['selected ID']}],actions:[], missingInformation:['For partial/insufficient answers: up to three short requests for the documentation needed, not patient claims. Empty when sufficient.'] },
+      contract:{ factIds:['retrieved ID'], answerability:'sufficient|partial|insufficient', interpretations:[{text:'cautious interpretation without numbers',factIds:['selected ID']}],actions:[], missingInformation:['For partial/insufficient answers: up to three short requests for the documentation needed, not patient claims. Empty when sufficient.'], followUp:null },
       validationRules: 'insufficient REQUIRES factIds=[], interpretations=[], actions=[]; put the required documentation ONLY in missingInformation. partial REQUIRES at least one directly useful fact, 1-3 missingInformation requests, and an interpretation explaining what cannot be concluded. For sufficient, missingInformation=[]. Each interpretation must be under 450 characters; each missingInformation request under 240. Prefer one interpretation, two only if genuinely necessary. Never pad the answer with unrelated notes. Do not infer suicidal ideation from a statement about intent: explicitly state that thoughts are not established by a denial of intent.',
     })
     audit({status:'answer_proposed',answer:proposedAnswer})
     const answer = validatePlannedAnswer(proposedAnswer, execution.facts, snapshot.scope.selectedDays)
+    if (answer.followUp != null) {
+      audit({status:'follow_up_proposed',attempt,followUp:answer.followUp})
+      if (attempt === 2) throw new Error('Follow-up retrieval limit reached')
+      const nextPlan = validateFollowUp(answer.followUp, plan, snapshot)
+      const next = executeEvidencePlan(nextPlan, snapshot, plan.steps.length)
+      const merged = new Map(execution.facts.map(f => [f.id,f]))
+      const newFactIds = next.facts.filter(f => !merged.has(f.id)).map(f => f.id)
+      next.facts.forEach(f => merged.set(f.id,f))
+      retrievalAttempts.push({attempt:2,reason:answer.followUp.reason,plan:nextPlan,trace:next.trace,newFactIds})
+      execution = {facts:[...merged.values()],trace:[...execution.trace,...next.trace]}
+      audit({status:'follow_up_retrieved',...retrievalAttempts[1],facts:next.facts})
+      continue
+    }
     audit({ status:'synthesized', plan, ...execution, answer })
-    return { plan, ...execution, ...answer }
+    return { plan, ...execution, ...answer, retrievalAttempts }
+    }
   } catch (error) { audit({ status:'rejected', plan:plan || null, trace:execution?.trace || [], error:error.message }); throw error }
 }

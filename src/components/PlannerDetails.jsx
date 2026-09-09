@@ -9,6 +9,11 @@ export default function PlannerDetails({ planning, evidenceRows = [] }) {
     {planning.answerability === 'partial' && <p>Only part of the question is supported by the retrieved evidence.</p>}
     <details className="planner-trace"><summary>View retrieval plan and tool results</summary>
       <p><strong>Interpreted question:</strong> {planning.plan?.intent}</p>
+      {planning.retrievalAttempts?.length > 1 && <div className="planner-finding">
+        <p><strong>One follow-up retrieval was used.</strong></p>
+        <p>{planning.retrievalAttempts[1].reason}</p>
+        <p>{planning.retrievalAttempts[1].newFactIds.length} additional facts retrieved. More facts do not by themselves establish clinical meaning.</p>
+      </div>}
       {(planning.trace || []).map((step,index)=><div className="planner-finding" key={index}>
         <p><strong>{step.tool.replaceAll('_',' ')}</strong> · {step.returned} of {step.matched} matching facts returned{step.truncated ? ' (limited)' : ''}</p>
         <p className="planner-arguments">{JSON.stringify(step.arguments)}</p>

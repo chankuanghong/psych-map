@@ -56,6 +56,11 @@ arithmetic are code; window selection and alignment labels are model output.
 
 ## Scope and interpretation
 
+The bounded retrieval follow-up added on 9 September has a separate
+[verification report with exact trial outputs](published/RETRIEVAL_FOLLOW_UP.md).
+Run `node evals/follow-up-live.mjs` for its controlled live test. The initial plan
+is deliberately fixed; subsequent synthesis and follow-up selection are live.
+
 A subsequent [live browser follow-up](published/BROWSER_CHECK.md) separately
 verified one family-feedback question through the UI, second reviewer and audit
 write. It also records a discovered audit-delivery bug, its fix and remaining UX limitations.
