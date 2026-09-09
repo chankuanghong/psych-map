@@ -7,6 +7,19 @@ It helps care teams find useful information, notice gaps and review AI suggestio
 
 **Three connected apps. Three CodeBuddy engines. People make the final decisions.**
 
+<!-- connected-demo-video:start -->
+[![Watch the 90-second Psych-MAP connected demo](docs/media/connected-demo-poster.jpg)](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Connected-Demo.mp4)
+
+**[Watch the 90-second demo](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Connected-Demo.mp4)** ·
+[RFID (16s)](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-RFID.mp4) ·
+[Clinician (38s)](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Clinician.mp4) ·
+[Question scan (18s)](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Question-Scan.mp4) ·
+[Weekly review (18s)](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Weekly-Review.mp4)
+
+Fictional data and simulated RFID. Real browser interactions and live CodeBuddy calls,
+with waiting shortened. [Capture details and limitations](docs/DEMO_VIDEO.md).
+<!-- connected-demo-video:end -->
+
 [Try the demo](#try-the-demo) · [How answers are built](docs/ANSWER_FLOW.md) · [Test results](evals/published/REPORT.md) · [Slides](Psych-MAP_tested-demo-deck.html)
 
 All included patient cases are fictional. This hackathon project is a research
