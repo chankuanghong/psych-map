@@ -1,16 +1,16 @@
 # Connected demo video
 
-[Watch the 90-second video](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Connected-Demo.mp4) · [All clips and captions](https://github.com/chankuanghong/psych-map/releases/tag/connected-demo-2026-09-09)
+[Watch the 90-second video](https://chankuanghong.github.io/psych-map/#full-demo)
 
 Recorded on 9 September 2026 using application commit `802b996`.
 
 ## Standalone engine videos
 
-- [Engine 1 — Clinical answers](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Clinician.mp4) — 38 seconds.
-- [Engine 2 — Question intelligence](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Question-Scan.mp4) — 18 seconds.
-- [Engine 3 — Weekly research review](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Weekly-Review.mp4) — 18 seconds.
+- [Engine 1 — Clinical answers](https://chankuanghong.github.io/psych-map/#engine-1) — 38 seconds.
+- [Engine 2 — Question intelligence](https://chankuanghong.github.io/psych-map/#engine-2) — 18 seconds.
+- [Engine 3 — Weekly research review](https://chankuanghong.github.io/psych-map/#engine-3) — 18 seconds.
 
-These three clips are the reviewed engine sections of the connected demo, each playable independently. The RFID simulation is available separately in the same release.
+These three clips are the reviewed engine sections of the connected demo, each playable independently. The RFID simulation is also embedded on the video page.
 
 | Time | Operation shown | Evidence |
 | --- | --- | --- |
@@ -50,6 +50,9 @@ mismatches. All 50 source/caption states were visually inspected. Each chapter c
 was checked frame by frame against its corresponding interval in the main video.
 Runtime, layout and contrast checks passed. The poster was inspected separately.
 
-Only finished videos, poster and captions are release assets. Git contains this note,
+Finished videos are served by GitHub Pages with inline playback. The player requests
+that browsers hide download controls and suppresses the video context menu; this
+discourages casual saving but cannot prevent downloading public media. Original
+release assets remain available. Git contains the player, finished videos, this note,
 the README link and the poster. Raw captures, actual EPCs, credentials, SQLite files
 and sidecars, clinical exports and unrelated desktop content are not included.

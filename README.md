@@ -8,15 +8,15 @@ It helps care teams find useful information, notice gaps and review AI suggestio
 **Three connected apps. Three CodeBuddy engines. People make the final decisions.**
 
 <!-- connected-demo-video:start -->
-[![Watch the 90-second Psych-MAP connected demo](docs/media/connected-demo-poster.jpg)](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Connected-Demo.mp4)
+[![Watch the Psych-MAP demos in the browser](docs/media/connected-demo-poster.jpg)](https://chankuanghong.github.io/psych-map/)
 
-**Three standalone engine videos**
+**[Play the videos in your browser](https://chankuanghong.github.io/psych-map/)**
 
-1. [Engine 1 — Clinical answers](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Clinician.mp4) — 38 seconds
-2. [Engine 2 — Question intelligence](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Question-Scan.mp4) — 18 seconds
-3. [Engine 3 — Weekly research review](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Weekly-Review.mp4) — 18 seconds
+1. [Engine 1 — Clinical answers](https://chankuanghong.github.io/psych-map/#engine-1) — 38 seconds
+2. [Engine 2 — Question intelligence](https://chankuanghong.github.io/psych-map/#engine-2) — 18 seconds
+3. [Engine 3 — Weekly research review](https://chankuanghong.github.io/psych-map/#engine-3) — 18 seconds
 
-[Full connected demo (90s)](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Connected-Demo.mp4) · [RFID simulation (16s)](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-RFID.mp4)
+[Full connected demo (90s)](https://chankuanghong.github.io/psych-map/#full-demo) · [RFID simulation (16s)](https://chankuanghong.github.io/psych-map/#rfid)
 
 Fictional data and simulated RFID. Real browser interactions and live CodeBuddy calls,
 with waiting shortened. [Capture details and limitations](docs/DEMO_VIDEO.md).

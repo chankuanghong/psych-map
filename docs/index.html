@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="Watch three Psych-MAP engine demonstrations in your browser."><title>Psych-MAP | Watch the demos</title>
+<style>
+:root{color-scheme:dark;font-family:Arial,sans-serif;background:#09151d;color:#edf5f7}*{box-sizing:border-box}body{margin:0}main,header,footer{max-width:1100px;margin:auto;padding:32px 24px}header{padding-top:56px;padding-bottom:12px}.brand{color:#66dac7;font-size:18px;font-weight:700}h1{font-size:clamp(32px,5vw,52px);letter-spacing:-1.5px;line-height:1.1;margin:20px 0}p{color:#b6cad3;line-height:1.6;max-width:760px}nav{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}a{color:#91e5d6;text-underline-offset:4px}nav a{padding:10px 16px;border:1px solid #35545f;border-radius:8px;text-decoration:none}a:hover{color:white;border-color:#91e5d6}a:focus-visible,video:focus-visible{outline:3px solid #91e5d6;outline-offset:4px}section{scroll-margin-top:24px;margin-bottom:48px;border:1px solid #29444f;border-radius:14px;overflow:hidden;background:#10232e}.heading{padding:24px}.eyebrow{font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#73dccb}h2{font-size:26px;margin:10px 0}.heading p{margin-bottom:0}video{display:block;width:100%;aspect-ratio:16/9;background:#000}footer{border-top:1px solid #29444f;font-size:14px;padding-bottom:48px}@media(max-width:550px){header{padding-top:32px}main,header,footer{padding-left:16px;padding-right:16px}.heading{padding:18px}h2{font-size:23px}}
+</style></head><body><header><div class="brand">Psych-MAP</div><h1>Three engines. See them in action.</h1><p>Watch the demonstrations here. Press play on any video to explore the workflow.</p><nav aria-label="Video chapters"><a href="#engine-1">Engine 1</a><a href="#engine-2">Engine 2</a><a href="#engine-3">Engine 3</a><a href="#full-demo">Full demo</a><a href="#rfid">RFID simulation</a></nav></header><main>
+<section id="engine-1" aria-labelledby="engine-1-title">
+ <div class="heading"><span class="eyebrow">Engine 1 · 38 seconds</span><h2 id="engine-1-title">Clinical answers</h2><p>Ask a clinical question, review the evidence and open the exact source.</p></div>
+ <video controls playsinline preload="metadata" controlslist="nodownload" aria-label="Engine 1: Clinical answers" src="media/Psych-MAP-Clinician.mp4">Your browser does not support embedded video.</video>
+ </section>
+<section id="engine-2" aria-labelledby="engine-2-title">
+ <div class="heading"><span class="eyebrow">Engine 2 · 18 seconds</span><h2 id="engine-2-title">Question intelligence</h2><p>Group staff questions and review new topics for each profession.</p></div>
+ <video controls playsinline preload="metadata" controlslist="nodownload" aria-label="Engine 2: Question intelligence" src="media/Psych-MAP-Question-Scan.mp4">Your browser does not support embedded video.</video>
+ </section>
+<section id="engine-3" aria-labelledby="engine-3-title">
+ <div class="heading"><span class="eyebrow">Engine 3 · 18 seconds</span><h2 id="engine-3-title">Weekly research review</h2><p>Review activity patterns alongside clinical notes, with staff making the final decision.</p></div>
+ <video controls playsinline preload="metadata" controlslist="nodownload" aria-label="Engine 3: Weekly research review" src="media/Psych-MAP-Weekly-Review.mp4">Your browser does not support embedded video.</video>
+ </section>
+<section id="full-demo" aria-labelledby="full-demo-title">
+ <div class="heading"><span class="eyebrow">Full demo · 90 seconds</span><h2 id="full-demo-title">The connected workflow</h2><p>See the simulated RFID data flow through the clinician and admin apps.</p></div>
+ <video controls playsinline preload="metadata" controlslist="nodownload" aria-label="Full demo: The connected workflow" src="media/Psych-MAP-Connected-Demo.mp4">Your browser does not support embedded video.</video>
+ </section>
+<section id="rfid" aria-labelledby="rfid-title">
+ <div class="heading"><span class="eyebrow">RFID simulation · 16 seconds</span><h2 id="rfid-title">From presence to patient record</h2><p>Fictional visits demonstrate how the shared patient record is updated.</p></div>
+ <video controls playsinline preload="metadata" controlslist="nodownload" aria-label="RFID simulation: From presence to patient record" src="media/Psych-MAP-RFID.mp4">Your browser does not support embedded video.</video>
+ </section>
+</main><footer><p>Demonstrations use fictional patient records and simulated RFID. Real browser interactions and live CodeBuddy calls are edited with shortened waits. Videos are silent with captions included in the picture. People make the final decisions.</p><a href="https://github.com/chankuanghong/psych-map">View the project</a></footer><script>
+const videos = document.querySelectorAll('video');
+for (const video of videos) {
+ video.addEventListener('contextmenu', event => event.preventDefault());
+ video.addEventListener('play', () => { for (const other of videos) if (other !== video) other.pause(); });
+}
+</script></body></html>
