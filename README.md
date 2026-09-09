@@ -94,7 +94,3 @@ Offline tests/CI need no AI credentials. Live evals use isolated question/review
 - `data/psych-map.sqlite`: application records, mapped presence, planner and answer audits.
 - `simulation/patients/*`: generated fixtures and patient-scoped questions.
 - `simulation/organization/`: question catalogue, review decisions and Markdown mirrors.
-
-The role dropdown is a professional lens, not authentication. Production identity/access control, consent, retention, EHR integration, clinical validation and journal access remain future work. Do not use real patient data or expose this as a public clinical service.
-
-Only source, fictional fixture generators, reviewed reports and original assets belong in GitHub. Never commit credentials, hardware mappings, SQLite files/sidecars, audit logs, clinical exports or raw recordings. See [publication review](docs/PUBLICATION.md). Review dependency advisories before any deployment.
