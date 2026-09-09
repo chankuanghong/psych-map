@@ -94,6 +94,9 @@ Early invalid requests are rejected before this answer-audit flow.
 
 ## Specific example: family feedback
 
+**Want the exact output, not the simplified explanation?**
+[Open the recorded answer, full plan, six tool results and second-review verdict](../evals/published/FAMILY_EXACT_TRACE.md).
+
 **Question:** “What feedback has the family provided after visiting?”
 
 **Fixture:** Fictional Patient A, Days 1–14. The following uses the actual note and
