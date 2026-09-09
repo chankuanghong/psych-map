@@ -4,6 +4,14 @@
 
 Recorded on 9 September 2026 using application commit `802b996`.
 
+## Standalone engine videos
+
+- [Engine 1 — Clinical answers](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Clinician.mp4) — 38 seconds.
+- [Engine 2 — Question intelligence](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Question-Scan.mp4) — 18 seconds.
+- [Engine 3 — Weekly research review](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Weekly-Review.mp4) — 18 seconds.
+
+These three clips are the reviewed engine sections of the connected demo, each playable independently. The RFID simulation is available separately in the same release.
+
 | Time | Operation shown | Evidence |
 | --- | --- | --- |
 | 00:00 | RFID dashboard and shared clinician record | Two simulated visits using the published fictional tag mapping; matching activity-room timestamp in Patient MAP. |

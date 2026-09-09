@@ -10,11 +10,13 @@ It helps care teams find useful information, notice gaps and review AI suggestio
 <!-- connected-demo-video:start -->
 [![Watch the 90-second Psych-MAP connected demo](docs/media/connected-demo-poster.jpg)](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Connected-Demo.mp4)
 
-**[Watch the 90-second demo](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Connected-Demo.mp4)** ·
-[RFID (16s)](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-RFID.mp4) ·
-[Clinician (38s)](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Clinician.mp4) ·
-[Question scan (18s)](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Question-Scan.mp4) ·
-[Weekly review (18s)](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Weekly-Review.mp4)
+**Three standalone engine videos**
+
+1. [Engine 1 — Clinical answers](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Clinician.mp4) — 38 seconds
+2. [Engine 2 — Question intelligence](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Question-Scan.mp4) — 18 seconds
+3. [Engine 3 — Weekly research review](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Weekly-Review.mp4) — 18 seconds
+
+[Full connected demo (90s)](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-Connected-Demo.mp4) · [RFID simulation (16s)](https://github.com/chankuanghong/psych-map/releases/download/connected-demo-2026-09-09/Psych-MAP-RFID.mp4)
 
 Fictional data and simulated RFID. Real browser interactions and live CodeBuddy calls,
 with waiting shortened. [Capture details and limitations](docs/DEMO_VIDEO.md).
