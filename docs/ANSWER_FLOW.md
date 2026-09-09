@@ -3,43 +3,94 @@
 **CodeBuddy chooses and explains. Code retrieves, calculates and checks.
 Staff judge the clinical meaning.**
 
-## The flow
+## The whole process at a glance
+
+| Step | Who | What happens |
+| --- | --- | --- |
+| 1 | Staff | Choose patient and dates. Ask the question. |
+| 2 | CodeBuddy | Propose which tools and records to use. |
+| 3 | Code | Validate the plan. Retrieve facts and calculate values. |
+| 4 | CodeBuddy | Select fact IDs and write a separate interpretation. |
+| 5 | Code + CodeBuddy reviewer | Code checks IDs and sources. The reviewer checks meaning and support. |
+| 6 | Code + Staff | Save the audit, display the result and let staff inspect the sources. |
+
+The diagrams below split the same process into three readable parts.
+**Purple = CodeBuddy. Green = application code. Blue = staff.**
+
+### A. Plan and retrieve
 
 ```mermaid
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
 flowchart TD
-    A["STAFF: Choose a patient and period; ask a question"] --> B["CODE: Check patient/folder match; build scoped evidence snapshot"]
-    B --> C["CODEBUDDY 1: Propose a JSON retrieval plan"]
-    C --> D{"CODE: Allowed tool, fields, metrics and days?"}
-    D -- No --> X["CODE: Withhold invalid answer; explain the limit"]
-    D -- Yes --> E["CODE: Run retrieval and calculations; attach fact and source IDs"]
-    E --> F["CODEBUDDY 2: Select fact IDs; draft interpretation or request missing information"]
-    F --> G{"CODE: Valid IDs, sources and output structure?"}
-    G -- No --> X
-    G -- Yes --> H["CODE: Render factual text from stored facts, not AI replacement text"]
-    H --> I{"CODEBUDDY 3: Evidence review passes?"}
-    I -- Yes --> J["CODE: Include labelled AI interpretation"]
-    I -- "No or error" --> K["CODE: Withhold interpretation, extra pointers and graph actions; show warning"]
-    J --> L["CODE: Save question, snapshot, proposal and response in SQLite"]
-    K --> L
-    X --> L
-    L --> M{"CODE: Audit saved?"}
-    M -- No --> N["CODE: Return error; do not deliver answer"]
-    M -- Yes --> O["STAFF: Read answer; open exact sources; judge meaning and missing context"]
+    A["STAFF: Ask question"] --> B["CODE: Set patient scope"]
+    B --> C["AI: Plan tool use"]
+    C --> D{"CODE: Plan valid?"}
+    D -- No --> X["Reject and explain"]
+    D -- Yes --> E["CODE: Retrieve facts"]
     classDef ai fill:#eeeafa,stroke:#77619c,color:#201b31;
     classDef code fill:#e3f2f0,stroke:#16877e,color:#153d38;
     classDef person fill:#eaf0fa,stroke:#426fad,color:#18324e;
-    class C,F,I ai;
-    class B,D,E,G,H,J,K,L,M,N,X code;
-    class A,O person;
+    class C ai;
+    class B,D,E,X code;
+    class A person;
 ```
 
-The numbered CodeBuddy boxes are **three calls inside the answer engine**, not
-the three product engines. The other engines are question scanning and weekly research.
+**How the code checks:** the tool must exist, fields and metrics must be allowed,
+and requested days must belong to the evidence scope. Code retrieves records,
+calculates values and attaches fact IDs and source IDs.
 
-This diagram shows the answered-question path. A planner can instead ask for
-clarification. With no adequate retrieved facts, the app reports missing evidence
-and does not run the second reviewer. Early invalid requests are rejected before
-this answer-audit flow. A failed review can leave source-backed facts visible.
+### B. Write and review
+
+```mermaid
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
+flowchart TD
+    A["AI: Select fact IDs"] --> B["AI: Draft interpretation"]
+    B --> C{"CODE: IDs valid?"}
+    C -- No --> X["Reject invalid output"]
+    C -- Yes --> D["CODE: Render facts"]
+    D --> E["AI: Second review"]
+    classDef ai fill:#eeeafa,stroke:#77619c,color:#201b31;
+    classDef code fill:#e3f2f0,stroke:#16877e,color:#153d38;
+    class A,B,E ai;
+    class C,D,X code;
+```
+
+**Who writes what:** code renders the stored factual wording and values.
+CodeBuddy writes the separate interpretation. Code rejects invented IDs and
+missing sources. The **second CodeBuddy review** checks relevance and whether
+the selected facts support the answer and interpretation. It is not a grammar
+guarantee or a clinical validation.
+
+### C. Save and show
+
+```mermaid
+%%{init: {"flowchart": {"htmlLabels": false}}}%%
+flowchart TD
+    A{"AI review passed?"} -- Yes --> B["Include interpretation"]
+    A -- No --> C["Withhold interpretation"]
+    B --> D["CODE: Save audit"]
+    C --> D
+    D --> E{"Audit saved?"}
+    E -- No --> F["Error: no delivery"]
+    E -- Yes --> G["STAFF: Check sources"]
+    classDef ai fill:#eeeafa,stroke:#77619c,color:#201b31;
+    classDef code fill:#e3f2f0,stroke:#16877e,color:#153d38;
+    classDef person fill:#eaf0fa,stroke:#426fad,color:#18324e;
+    class A ai;
+    class B,C,D,E,F code;
+    class G person;
+```
+
+**If review fails or errors:** show a warning; withhold AI interpretation,
+supplementary pointers and proposed graph actions. Source-backed facts can remain.
+**If the audit write fails:** do not deliver the answer.
+
+These are calls inside the **answer engine**, not the three product engines.
+The other engines are question scanning and weekly research.
+
+A planner can instead ask for clarification. With no adequate retrieved facts,
+the app reports missing evidence and does not run the second reviewer.
+Early invalid requests are rejected before this answer-audit flow.
 
 ## Specific example: family feedback
 
