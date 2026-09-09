@@ -1,36 +1,108 @@
 # Psych-MAP
 
-**A psychiatric ward demo connecting spatial observations, clinical notes and staff questions, with evidence people can inspect.**
+### See the pattern. Ask a question. Check the evidence.
 
-Our hackathon prototype explores how an AI assistant can help a multidisciplinary team understand routines, identify unanswered questions and review whether spatial signals agree with clinician assessments. Every distributed patient case is deliberately fictional.
+Psych-MAP brings ward activity, clinical notes and staff questions together.
+It helps care teams find useful information, notice gaps and review AI suggestions.
 
-> Research prototype only. No clinical validation, prescribing, autonomous risk assessment or automatic threshold changes. Location does not establish sleep, eating, medication-taking or recovery.
+**Three connected apps. Three CodeBuddy engines. People make the final decisions.**
+
+[Try the demo](#try-the-demo) · [How answers are built](docs/ANSWER_FLOW.md) · [Test results](evals/published/REPORT.md) · [Slides](Psych-MAP_tested-demo-deck.html)
+
+All included patient cases are fictional. This hackathon project is a research
+prototype, not a clinically validated system.
+
+## See what works
+
+These examples come from recorded tests, not scripted AI answers.
+
+| Example | What happened |
+| --- | --- |
+| **Ask about family feedback** | CodeBuddy found the Day 12 note: the sister described withdrawal before admission and offered transport for follow-up appointments. Staff opened the exact note. The second AI review passed all five selected facts. |
+| **Compare recorded activity** | For Patient C, recorded overnight presence in the assigned cubicle was 140 minutes on Day 7 and 350 minutes on Day 11. Code retrieved the values. Presence is not proof of sleep. |
+| **Learn from staff questions** | Two identical questions from different staff groups became one question group with a count of two. A repeat scan did not count them again. New topics needed administrator approval. |
+| **Review a research suggestion** | Code calculated spatial averages for Patient B. CodeBuddy judged agreement with the clinician note as unclear. The recommendation was to review the evidence and keep thresholds unchanged. |
+
+**Explore the proof:** [Live browser example](evals/published/BROWSER_CHECK.md) ·
+[Answer engine](evals/published/engine-1.md) ·
+[Question scanner](evals/published/engine-2.md) ·
+[Research reviewer](evals/published/engine-3.md)
+
+### When more information is needed
+
+The app explains when the records cannot answer a question. For example, room
+presence alone cannot answer “How has the patient been sleeping?” The tested
+response requested sleep observations or patient-reported sleep information.
+
+Some answers are partial; others need more documentation.
+[All 14 doctor-question results remain available here](evals/published/DOCTOR_ANSWERS.md).
 
 ## Three apps
 
-|App|What to demonstrate|
-|---|---|
-|Clinician Psych-MAP (`/`)|Ward overview, patient map, spatial trends, notes and source-linked answers with separately labelled AI interpretation.|
-|Question Intelligence (`/admin`)|Staff-group/topic heat map, filtered question library, profession-policy decisions and recommendation review.|
-|RFID dashboard (port 8765)|Tag detections, selected scanner venue and inferred presence sessions. Explore the UI without hardware.|
+| App | What people do |
+| --- | --- |
+| **RFID dashboard** | See tag detections, choose the scanner location and inspect recorded presence. |
+| **Clinician app** | View the ward, explore patient maps, ask questions and open supporting notes. |
+| **Admin console** | See question patterns, approve topics for each profession and review research suggestions. |
+
+The RFID dashboard and clinician app share the application database. Questions
+are stored by patient. The admin console uses a separate question catalogue and review store.
 
 ## Three CodeBuddy engines
 
-1. **On demand:** interprets questions and proposes JSON plans. Code validates and executes `read_metrics`, `read_events` or `compare_periods`. CodeBuddy synthesises cited results. A further AI review checks the proposed interpretation. Invalid output is withheld. SQLite preserves the answer and its evidence snapshot.
-2. **Nightly/manual:** groups de-identified questions, counts repeated intents and proposes profession coverage topics. Administrators approve policies.
-3. **Weekly/manual:** selects comparison windows and a clinician assessment. Code calculates spatial means. CodeBuddy proposes an alignment judgement. Administrators keep or ignore recommendations. No automatic threshold change or literature retrieval.
+| Engine | When | What CodeBuddy does | What code and people control |
+| --- | --- | --- | --- |
+| **Answer assistant** | On demand | Plans what evidence to read and explains the results. | Code checks requests, retrieves facts and calculates values. Staff inspect sources. |
+| **Question scanner** | Nightly or manually | Groups similar questions and identifies possible topic gaps. | Code counts and saves results. Admins approve policies. |
+| **Research reviewer** | Weekly or manually | Chooses comparison periods and reviews signals alongside clinician notes. | Code calculates comparisons. Admins review suggestions; live thresholds stay unchanged. |
 
-CodeBuddy chooses what to investigate. Code owns retrieval and calculations. People check context and make consequential decisions. Source links establish provenance, not clinical truth.
+### Who writes the answer?
 
-## Materials
+- **Application code:** recorded facts, numbers, dates and source excerpts.
+- **CodeBuddy:** a separate, labelled interpretation and requests for missing information.
+- **Staff:** check the evidence and make clinical decisions.
 
-For a software-only demo: Node with `node:sqlite` (Node 24 in CI; local evals used 23), npm, Python 3.9+ and the `sqlite3` command. Optional live AI requires the CodeBuddy CLI, authentication and access to `fast-model`. Obtain the CLI from your event/provider's official instructions; `codebuddy --help` should work. Live AI sends selected evidence externally and consumes account tokens.
+Code rejects invented fact IDs, missing sources and invalid tool requests.
+A second AI review checks the proposed interpretation. If that review fails,
+interpretations and extra pointers are withheld. SQLite saves the question,
+evidence and final answer before delivery.
 
-For RFID: a supported **YRM100 UHF reader**, suitable antenna/power arrangement, USB serial connection, compatible **UHF tags**, and any required USB adapter/manufacturer driver. Phone NFC tags are not interchangeable with UHF tags. Optional: `python3 -m pip install pyserial`.
+These checks reduce fabrication. They do not guarantee that every interpretation
+is correct or useful.
 
-One reader is associated with one selected venue. This is not calibrated multi-reader positioning. RSSI is not converted to distance. Vendor SDKs/drivers and actual tag identifiers are not distributed.
+[See the flowchart and worked example](docs/ANSWER_FLOW.md) · [Audit details](docs/answer-audit.md)
 
-## Fresh-clone setup
+## Tested, not just described
+
+| Check | Recorded result |
+| --- | --- |
+| Application tests | **71 passed** |
+| RFID software tests | **35 passed** |
+| Live CodeBuddy scenarios | **18 latest results passed**, across the initial run and targeted retests |
+| Live browser test | Family question → retrieval → second review → source inspection → saved audit |
+| Build and GitHub CI | Passed for the tested code |
+
+The 18 scenarios include 14 doctor questions, a spatial comparison, an ambiguous
+question and both background engines. A pass can mean correctly reporting missing
+evidence—not answering every clinical question.
+
+Failed attempts and fixes remain visible. This was not one flawless run.
+A new physical RFID read was not verified in the latest test.
+
+[Results and fixes](evals/published/REPORT.md) · [Dataset and test method](evals/README.md)
+
+## Try the demo
+
+### What you need
+
+**Software:** Node.js 24, npm, Python 3.9+ and the `sqlite3` command.
+Hardware is optional for exploring the pages and fictional data.
+
+**Live AI:** An installed, authenticated CodeBuddy CLI with access to `fast-model`.
+Follow your event/provider's official installation instructions and check that
+`codebuddy --help` works. Live AI sends selected demo evidence to CodeBuddy and uses tokens.
+
+### Start the apps
 
 ```sh
 git clone https://github.com/chankuanghong/psych-map.git
@@ -40,25 +112,49 @@ npm run demo:setup
 npm run dev -- --host 127.0.0.1 --port 5175 --strictPort
 ```
 
-Open `http://127.0.0.1:5175/` and `/admin`. Setup generates synthetic SQLite stores, preserves complete existing fixtures and refuses partial fixture rebuilds. No prebuilt database is needed.
+- Clinician app: `http://127.0.0.1:5175/`
+- Admin console: `http://127.0.0.1:5175/admin`
 
-In another terminal, start the RFID page, even without a reader:
+Setup creates fictional SQLite stores. It preserves complete existing fixtures
+and stops if only part of a fixture set exists.
+
+In a second terminal, from the project folder:
 
 ```sh
 python3 rfid-scanner/dashboard.py --allow-missing-reader
 ```
 
-Open `http://127.0.0.1:8765/`. It shares `data/psych-map.sqlite` with the application. Ctrl-C stops each service.
+RFID dashboard: `http://127.0.0.1:8765/`. It shares the application database.
+Press Ctrl-C in each terminal to stop the services.
 
-### Enable AI deliberately
+### Turn on CodeBuddy
 
-Copy `.env.example` to `.env`. Set `CODEBUDDY_ENABLED=true`; enable the per-engine flags for live scans/research. Restart Vite. Leave schedules disabled until you want the in-process nightly/weekly jobs. Manual buttons run the same jobs.
+Copy `.env.example` to `.env` and set:
 
-On macOS, `Launch Psych-MAP Demo.command` starts all services, **enables CodeBuddy and both schedules**, probes the model and opens the views. It consumes tokens and exposes a LAN demo view: use a trusted network and fictional data only. Keep the launcher terminal open. The CLI must already be authenticated.
+```dotenv
+CODEBUDDY_ENABLED=true
+CODEBUDDY_QUESTION_SCAN_ENABLED=true
+CODEBUDDY_RESEARCH_ENABLED=true
+```
 
-### Private tag configuration
+Restart the app. Use admin buttons for manual scans and research.
+Keep `QUESTION_CRON_ENABLED=false` and `RESEARCH_CRON_ENABLED=false` if you
+do not want scheduled runs. AI is disabled by default.
 
-Only fictitious EPCs are included. Put actual mappings in ignored `rfid-tags.local.json`:
+**macOS shortcut:** After setup, `Launch Psych-MAP Demo.command` starts the services
+and opens the pages. It enables CodeBuddy and both schedules, consumes tokens and
+opens a LAN demo view. Use fictional data on a trusted network. Keep its terminal open.
+
+## Add a real RFID reader
+
+You need a **YRM100 UHF reader**, suitable antenna and power supply, a USB serial
+connection, compatible **UHF tags**, and any required manufacturer driver.
+Phone NFC tags are not a substitute. Optional: `python3 -m pip install pyserial`.
+
+One reader represents one selected ward location. This is not precise indoor
+positioning; signal strength is not converted to distance.
+
+Only fictional tag IDs are included. Put your mapping in ignored `rfid-tags.local.json`:
 
 ```json
 {"YOUR_TAG_EPC":{"name":"Demo volunteer","subject_id":"PT-003"}}
@@ -69,28 +165,40 @@ export RFID_TAG_MAP="$PWD/rfid-tags.local.json"
 python3 rfid-scanner/dashboard.py --allow-missing-reader
 ```
 
-Unmapped tags have no patient assignment. Select the scanner venue, present a tag and check a new timestamp. Missing detections are not evidence of a clinical outcome. Check reader status first.
+Check reader status, select its location, present a tag and look for a new timestamp.
+Unmapped tags have no patient assignment. [RFID details](rfid-scanner/README.md)
 
-## Evals and actual examples
-
-- [Dataset and methodology](evals/README.md)
-- [Results and refinement history](evals/published/REPORT.md)
-- [Actual answers to all 14 doctor questions](evals/published/DOCTOR_ANSWERS.md)
-- Full execution examples: [Engine 1](evals/published/engine-1.md), [Engine 2](evals/published/engine-2.md), [Engine 3](evals/published/engine-3.md)
-- [SQLite evidence audit](docs/answer-audit.md)
-- [HTML presentation](Psych-MAP_tested-demo-deck.html)
+## Run the tests
 
 ```sh
 npm test
 (cd rfid-scanner && python3 -m unittest discover -s tests)
 npm run build
-npm run eval:live   # external CodeBuddy calls; synthetic evidence only
 ```
 
-Offline tests/CI need no AI credentials. Live evals use isolated question/review databases and retain failures. Traces contain inputs, plans, application tools and outputs, not private reasoning. Passing selected tests is not clinical validation or a guarantee of future answers.
+These checks need no AI credentials. For live scenarios:
 
-## Storage and limitations
+```sh
+npm run eval:live
+```
 
-- `data/psych-map.sqlite`: application records, mapped presence, planner and answer audits.
-- `simulation/patients/*`: generated fixtures and patient-scoped questions.
-- `simulation/organization/`: question catalogue, review decisions and Markdown mirrors.
+Live evaluations use fictional evidence, consume tokens and retain failed results.
+Their question and review databases are isolated from the demo.
+
+## Project files
+
+| Folder | Purpose |
+| --- | --- |
+| `src/` | Clinician/admin pages, metrics and evidence formatting |
+| `server/` | API, planner, validation and answer audit |
+| `rfid-scanner/` | Reader connection and presence dashboard |
+| `simulation/` | Fictional-data setup, question scans and research jobs |
+| `config/` and `contracts/` | Agent instructions and output rules |
+| `test/` and `evals/` | Tests, live results and execution examples |
+
+Generated storage: `data/psych-map.sqlite` for application records and audits;
+`simulation/patients/` for patient fixtures and questions;
+`simulation/organization/` for the catalogue and review decisions.
+
+Journal access and validated threshold estimation are future work.
+Current research suggestions use the application's existing records.
