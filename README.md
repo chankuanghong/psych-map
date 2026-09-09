@@ -12,6 +12,8 @@ It helps care teams find useful information, notice gaps and review AI suggestio
 
 **[Play the videos in your browser](https://chankuanghong.github.io/psych-map/)**
 
+The player is ready; the repository owner still needs to enable GitHub Pages from `main` → `/docs` in Settings → Pages.
+
 1. [Engine 1 — Clinical answers](https://chankuanghong.github.io/psych-map/#engine-1) — 38 seconds
 2. [Engine 2 — Question intelligence](https://chankuanghong.github.io/psych-map/#engine-2) — 18 seconds
 3. [Engine 3 — Weekly research review](https://chankuanghong.github.io/psych-map/#engine-3) — 18 seconds

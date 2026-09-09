@@ -56,3 +56,10 @@ discourages casual saving but cannot prevent downloading public media. Original
 release assets remain available. Git contains the player, finished videos, this note,
 the README link and the poster. Raw captures, actual EPCs, credentials, SQLite files
 and sidecars, clinical exports and unrelated desktop content are not included.
+
+## GitHub Pages activation
+
+The embedded player and media are committed in `docs/`. A repository administrator
+must enable Settings → Pages → Deploy from a branch → `main` → `/docs` → Save.
+The publishing account has push access but no Pages settings permission. After the
+first successful deployment, remove the temporary activation note in the README.
